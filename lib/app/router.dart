@@ -10,16 +10,26 @@ import '../features/encyclopedia/encyclopedia_download_screen.dart';
 import '../features/encyclopedia/encyclopedia_screen.dart';
 import '../features/encyclopedia/species_guide_screen.dart';
 import '../features/map/sightings_map_screen.dart';
+import '../features/onboarding/onboarding_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/sightings/encounter_detail_screen.dart';
 import '../features/sightings/species_history_screen.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
-GoRouter buildRouter() => GoRouter(
+/// [needsOnboarding] is checked on every navigation to `/`, so the tutorial
+/// shows on first launch until it is finished or skipped.
+GoRouter buildRouter({required bool Function() needsOnboarding}) => GoRouter(
   navigatorKey: _rootKey,
   initialLocation: '/',
+  redirect: (_, state) =>
+      state.matchedLocation == '/' && needsOnboarding() ? '/welcome' : null,
   routes: [
+    GoRoute(
+      path: '/welcome',
+      parentNavigatorKey: _rootKey,
+      builder: (_, _) => const OnboardingScreen(),
+    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) =>
           AchievementAnnouncer(child: _HomeShell(shell: shell)),

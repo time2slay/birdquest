@@ -65,7 +65,7 @@ jobs:
           # Build numbers only grow, so each release installs over the last.
           flutter build apk --release --split-per-abi \
             --target-platform android-arm,android-arm64 \
-            --build-number=$((GITHUB_RUN_NUMBER + 10))
+            --build-number=$((GITHUB_RUN_NUMBER + 100))
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/birdquest-arm64-v8a.apk
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/birdquest-armeabi-v7a.apk

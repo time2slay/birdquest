@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
 import '../../services/bird_recognition/model_manager.dart';
@@ -166,16 +167,23 @@ class AboutScreen extends ConsumerWidget {
             'and license are shown on each photo.',
             style: theme.textTheme.bodySmall,
           ),
+          const SizedBox(height: Space.md),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/welcome'),
+            icon: const Icon(Icons.school_outlined),
+            label: const Text('Replay tutorial'),
+          ),
           const SizedBox(height: Space.xl),
           Text('Privacy', style: theme.textTheme.titleLarge),
           const SizedBox(height: Space.sm),
           const Text(
             'Audio, photos and locations stay on this phone. BirdQuest has no '
-            'account, no cloud sync and no analytics. The only network '
-            'request is the one-time model download you start yourself. '
+            'account, no cloud sync and no analytics. Network requests: the '
+            'one-time model download you start yourself, map tiles from '
+            'OpenFreeMap, and (if species photos are on, or you download an '
+            'Encyclopedia area) photos and descriptions from Wikimedia. '
             'The location filter reads your approximate position on the '
-            'phone and never stores or sends it. If species photos are on, '
-            'the app also requests one photo per species from Wikimedia.',
+            'phone and never stores or sends it.',
           ),
           const SizedBox(height: Space.xl),
           Text('Images & code', style: theme.textTheme.titleLarge),

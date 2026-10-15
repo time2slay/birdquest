@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../shared/theme/app_theme.dart';
+import '../features/onboarding/onboarding_screen.dart';
 import 'providers.dart';
 import 'router.dart';
 
@@ -14,7 +15,9 @@ class BirdQuestApp extends ConsumerStatefulWidget {
 }
 
 class _BirdQuestAppState extends ConsumerState<BirdQuestApp> {
-  late final GoRouter _router = buildRouter();
+  late final GoRouter _router = buildRouter(
+    needsOnboarding: () => !ref.read(onboardingDoneProvider),
+  );
 
   @override
   void dispose() {
@@ -32,10 +35,10 @@ class _BirdQuestAppState extends ConsumerState<BirdQuestApp> {
       themeMode: ref.watch(themeModeProvider),
       routerConfig: _router,
       // Keep content (and bottom buttons) clear of the system navigation
-      // bar on edge-to-edge Android.
+      // bar on edge-to-edge Android; in landscape it sits on the side.
       builder: (context, child) => ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
-        child: SafeArea(top: false, left: false, right: false, child: child!),
+        child: SafeArea(top: false, child: child!),
       ),
     );
   }
