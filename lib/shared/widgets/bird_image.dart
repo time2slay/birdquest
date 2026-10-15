@@ -6,21 +6,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
+import 'photo_credit.dart';
 
 /// Shows a species image with this priority: the user's own cover photo,
-/// a licensed reference image, or a clearly labeled placeholder illustration.
+/// a licensed reference image (bundled asset or Wikimedia Commons photo for
+/// [scientificName]), or a clearly labeled placeholder illustration.
 class BirdImage extends ConsumerWidget {
   const BirdImage({
     super.key,
     required this.name,
+    this.scientificName,
     this.coverPhotoPath,
     this.referenceImage,
     this.borderRadius = BorderRadius.zero,
     this.showPlaceholderLabel = true,
+    this.showCredit = false,
     this.cacheWidth,
   });
 
   final String name;
+
+  /// Looks up a Commons reference photo when given.
+  final String? scientificName;
+
+  /// Overlays the photo credit (required by CC licenses on large images).
+  final bool showCredit;
 
   /// Relative media path of a user photo.
   final String? coverPhotoPath;
@@ -48,6 +58,27 @@ class BirdImage extends ConsumerWidget {
         cacheWidth: cacheWidth,
         errorBuilder: (_, _, _) => _placeholder(context),
       );
+    } else if (scientificName != null) {
+      final ref0 = ref.watch(referencePhotoProvider(scientificName!)).value;
+      child = ref0 == null
+          ? _placeholder(context)
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.file(
+                  ref0.file,
+                  fit: BoxFit.cover,
+                  cacheWidth: cacheWidth,
+                  errorBuilder: (_, _, _) => _placeholder(context),
+                ),
+                if (showCredit)
+                  Positioned(
+                    left: Space.sm,
+                    bottom: Space.sm,
+                    child: PhotoCreditChip(photo: ref0.photo),
+                  ),
+              ],
+            );
     } else {
       child = _placeholder(context);
     }

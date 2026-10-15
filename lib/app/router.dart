@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/about/about_screen.dart';
+import '../features/achievements/achievements_screen.dart';
 import '../features/bird_details/bird_details_screen.dart';
 import '../features/bird_details/camera_screen.dart';
 import '../features/collection/collection_screen.dart';
+import '../features/encyclopedia/encyclopedia_download_screen.dart';
+import '../features/encyclopedia/encyclopedia_screen.dart';
+import '../features/encyclopedia/species_guide_screen.dart';
+import '../features/map/sightings_map_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/sightings/encounter_detail_screen.dart';
 import '../features/sightings/species_history_screen.dart';
@@ -16,7 +21,8 @@ GoRouter buildRouter() => GoRouter(
   initialLocation: '/',
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => _HomeShell(shell: shell),
+      builder: (context, state, shell) =>
+          AchievementAnnouncer(child: _HomeShell(shell: shell)),
       branches: [
         StatefulShellBranch(
           routes: [
@@ -26,8 +32,24 @@ GoRouter buildRouter() => GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: '/map',
+              builder: (_, _) => const SightingsMapScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: '/collection',
               builder: (_, _) => const CollectionScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/guide',
+              builder: (_, _) => const EncyclopediaScreen(),
             ),
           ],
         ),
@@ -58,6 +80,24 @@ GoRouter buildRouter() => GoRouter(
           EncounterDetailScreen(sightingId: int.parse(s.pathParameters['id']!)),
     ),
     GoRoute(
+      path: '/guide/download',
+      parentNavigatorKey: _rootKey,
+      builder: (_, _) => const EncyclopediaDownloadScreen(),
+    ),
+    GoRoute(
+      path: '/guide/species/:sci',
+      parentNavigatorKey: _rootKey,
+      builder: (_, s) => SpeciesGuideScreen(
+        scientificName: s.pathParameters['sci']!,
+        fallbackName: s.uri.queryParameters['name'],
+      ),
+    ),
+    GoRoute(
+      path: '/achievements',
+      parentNavigatorKey: _rootKey,
+      builder: (_, _) => const AchievementsScreen(),
+    ),
+    GoRoute(
       path: '/about',
       parentNavigatorKey: _rootKey,
       builder: (_, _) => const AboutScreen(),
@@ -84,9 +124,19 @@ class _HomeShell extends StatelessWidget {
             label: 'Listen',
           ),
           NavigationDestination(
+            icon: Icon(Icons.map_outlined),
+            selectedIcon: Icon(Icons.map_rounded),
+            label: 'Map',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.collections_bookmark_outlined),
             selectedIcon: Icon(Icons.collections_bookmark_rounded),
             label: 'Collection',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book_rounded),
+            label: 'Guide',
           ),
         ],
       ),

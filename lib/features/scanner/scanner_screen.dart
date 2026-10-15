@@ -12,6 +12,7 @@ import '../../shared/theme/illustrations.dart';
 import '../../shared/theme/tokens.dart';
 import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/common.dart';
+import '../../shared/widgets/guide_description.dart';
 import '../../shared/widgets/theme_toggle.dart';
 import 'scanner_controller.dart';
 import 'widgets/level_waveform.dart';
@@ -262,7 +263,7 @@ class _ListeningHero extends ConsumerWidget {
   }
 }
 
-class _DetectionTile extends StatelessWidget {
+class _DetectionTile extends ConsumerWidget {
   const _DetectionTile({
     required this.group,
     required this.demo,
@@ -274,7 +275,7 @@ class _DetectionTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final time = DateFormat.Hms().format(group.lastHeard);
     return Card(
@@ -288,6 +289,7 @@ class _DetectionTile extends StatelessWidget {
                 dimension: 64,
                 child: BirdImage(
                   name: group.species.commonName,
+                  scientificName: group.species.scientificName,
                   borderRadius: BorderRadius.circular(Radii.md),
                   showPlaceholderLabel: false,
                   cacheWidth: 192,
@@ -302,7 +304,11 @@ class _DetectionTile extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            group.species.commonName,
+                            speciesDisplayName(
+                              ref,
+                              group.species.scientificName,
+                              group.species.commonName,
+                            ),
                             style: theme.textTheme.titleMedium,
                             overflow: TextOverflow.ellipsis,
                           ),

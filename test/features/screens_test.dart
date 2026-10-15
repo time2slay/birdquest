@@ -7,6 +7,7 @@ import 'package:birdquest/data/repositories/sighting_repository.dart';
 import 'package:birdquest/features/collection/collection_screen.dart';
 import 'package:birdquest/features/scanner/scanner_screen.dart';
 import 'package:birdquest/services/bird_recognition/model_manager.dart';
+import 'package:birdquest/services/species_guide/species_guide.dart';
 import 'package:birdquest/shared/theme/app_theme.dart';
 import 'package:birdquest/shared/widgets/theme_toggle.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,7 @@ void main() {
       appPathsProvider.overrideWithValue(paths),
       databaseProvider.overrideWithValue(db),
       sharedPreferencesProvider.overrideWithValue(prefs),
+      speciesGuideProvider.overrideWith((ref) async => SpeciesGuide.empty),
       modelStatusProvider.overrideWith(
         (ref) => Stream.value(const ModelNotInstalled()),
       ),
@@ -175,6 +177,7 @@ void main() {
           appPathsProvider.overrideWithValue(paths),
           databaseProvider.overrideWithValue(db),
           sharedPreferencesProvider.overrideWithValue(prefs),
+          speciesGuideProvider.overrideWith((ref) async => SpeciesGuide.empty),
         ],
         child: MaterialApp(
           theme: AppTheme.light(),

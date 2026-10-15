@@ -2326,6 +2326,1173 @@ class DetectionsCompanion extends UpdateCompanion<DetectionRow> {
   }
 }
 
+class $GuideDescriptionsTable extends GuideDescriptions
+    with TableInfo<$GuideDescriptionsTable, GuideDescriptionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GuideDescriptionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _scientificNameMeta = const VerificationMeta(
+    'scientificName',
+  );
+  @override
+  late final GeneratedColumn<String> scientificName = GeneratedColumn<String>(
+    'scientific_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _langMeta = const VerificationMeta('lang');
+  @override
+  late final GeneratedColumn<String> lang = GeneratedColumn<String>(
+    'lang',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _articleTitleMeta = const VerificationMeta(
+    'articleTitle',
+  );
+  @override
+  late final GeneratedColumn<String> articleTitle = GeneratedColumn<String>(
+    'article_title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fetchedAtMeta = const VerificationMeta(
+    'fetchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+    'fetched_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    scientificName,
+    lang,
+    body,
+    articleTitle,
+    fetchedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'guide_descriptions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GuideDescriptionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scientific_name')) {
+      context.handle(
+        _scientificNameMeta,
+        scientificName.isAcceptableOrUnknown(
+          data['scientific_name']!,
+          _scientificNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scientificNameMeta);
+    }
+    if (data.containsKey('lang')) {
+      context.handle(
+        _langMeta,
+        lang.isAcceptableOrUnknown(data['lang']!, _langMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_langMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('article_title')) {
+      context.handle(
+        _articleTitleMeta,
+        articleTitle.isAcceptableOrUnknown(
+          data['article_title']!,
+          _articleTitleMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_articleTitleMeta);
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(
+        _fetchedAtMeta,
+        fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {scientificName, lang};
+  @override
+  GuideDescriptionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GuideDescriptionRow(
+      scientificName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scientific_name'],
+      )!,
+      lang: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lang'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      articleTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}article_title'],
+      )!,
+      fetchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fetched_at'],
+      )!,
+    );
+  }
+
+  @override
+  $GuideDescriptionsTable createAlias(String alias) {
+    return $GuideDescriptionsTable(attachedDatabase, alias);
+  }
+}
+
+class GuideDescriptionRow extends DataClass
+    implements Insertable<GuideDescriptionRow> {
+  final String scientificName;
+
+  /// 'en' or 'ru'.
+  final String lang;
+  final String body;
+  final String articleTitle;
+  final DateTime fetchedAt;
+  const GuideDescriptionRow({
+    required this.scientificName,
+    required this.lang,
+    required this.body,
+    required this.articleTitle,
+    required this.fetchedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['scientific_name'] = Variable<String>(scientificName);
+    map['lang'] = Variable<String>(lang);
+    map['body'] = Variable<String>(body);
+    map['article_title'] = Variable<String>(articleTitle);
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    return map;
+  }
+
+  GuideDescriptionsCompanion toCompanion(bool nullToAbsent) {
+    return GuideDescriptionsCompanion(
+      scientificName: Value(scientificName),
+      lang: Value(lang),
+      body: Value(body),
+      articleTitle: Value(articleTitle),
+      fetchedAt: Value(fetchedAt),
+    );
+  }
+
+  factory GuideDescriptionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GuideDescriptionRow(
+      scientificName: serializer.fromJson<String>(json['scientificName']),
+      lang: serializer.fromJson<String>(json['lang']),
+      body: serializer.fromJson<String>(json['body']),
+      articleTitle: serializer.fromJson<String>(json['articleTitle']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'scientificName': serializer.toJson<String>(scientificName),
+      'lang': serializer.toJson<String>(lang),
+      'body': serializer.toJson<String>(body),
+      'articleTitle': serializer.toJson<String>(articleTitle),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+    };
+  }
+
+  GuideDescriptionRow copyWith({
+    String? scientificName,
+    String? lang,
+    String? body,
+    String? articleTitle,
+    DateTime? fetchedAt,
+  }) => GuideDescriptionRow(
+    scientificName: scientificName ?? this.scientificName,
+    lang: lang ?? this.lang,
+    body: body ?? this.body,
+    articleTitle: articleTitle ?? this.articleTitle,
+    fetchedAt: fetchedAt ?? this.fetchedAt,
+  );
+  GuideDescriptionRow copyWithCompanion(GuideDescriptionsCompanion data) {
+    return GuideDescriptionRow(
+      scientificName: data.scientificName.present
+          ? data.scientificName.value
+          : this.scientificName,
+      lang: data.lang.present ? data.lang.value : this.lang,
+      body: data.body.present ? data.body.value : this.body,
+      articleTitle: data.articleTitle.present
+          ? data.articleTitle.value
+          : this.articleTitle,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GuideDescriptionRow(')
+          ..write('scientificName: $scientificName, ')
+          ..write('lang: $lang, ')
+          ..write('body: $body, ')
+          ..write('articleTitle: $articleTitle, ')
+          ..write('fetchedAt: $fetchedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(scientificName, lang, body, articleTitle, fetchedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GuideDescriptionRow &&
+          other.scientificName == this.scientificName &&
+          other.lang == this.lang &&
+          other.body == this.body &&
+          other.articleTitle == this.articleTitle &&
+          other.fetchedAt == this.fetchedAt);
+}
+
+class GuideDescriptionsCompanion extends UpdateCompanion<GuideDescriptionRow> {
+  final Value<String> scientificName;
+  final Value<String> lang;
+  final Value<String> body;
+  final Value<String> articleTitle;
+  final Value<DateTime> fetchedAt;
+  final Value<int> rowid;
+  const GuideDescriptionsCompanion({
+    this.scientificName = const Value.absent(),
+    this.lang = const Value.absent(),
+    this.body = const Value.absent(),
+    this.articleTitle = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GuideDescriptionsCompanion.insert({
+    required String scientificName,
+    required String lang,
+    required String body,
+    required String articleTitle,
+    required DateTime fetchedAt,
+    this.rowid = const Value.absent(),
+  }) : scientificName = Value(scientificName),
+       lang = Value(lang),
+       body = Value(body),
+       articleTitle = Value(articleTitle),
+       fetchedAt = Value(fetchedAt);
+  static Insertable<GuideDescriptionRow> custom({
+    Expression<String>? scientificName,
+    Expression<String>? lang,
+    Expression<String>? body,
+    Expression<String>? articleTitle,
+    Expression<DateTime>? fetchedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (scientificName != null) 'scientific_name': scientificName,
+      if (lang != null) 'lang': lang,
+      if (body != null) 'body': body,
+      if (articleTitle != null) 'article_title': articleTitle,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GuideDescriptionsCompanion copyWith({
+    Value<String>? scientificName,
+    Value<String>? lang,
+    Value<String>? body,
+    Value<String>? articleTitle,
+    Value<DateTime>? fetchedAt,
+    Value<int>? rowid,
+  }) {
+    return GuideDescriptionsCompanion(
+      scientificName: scientificName ?? this.scientificName,
+      lang: lang ?? this.lang,
+      body: body ?? this.body,
+      articleTitle: articleTitle ?? this.articleTitle,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (scientificName.present) {
+      map['scientific_name'] = Variable<String>(scientificName.value);
+    }
+    if (lang.present) {
+      map['lang'] = Variable<String>(lang.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (articleTitle.present) {
+      map['article_title'] = Variable<String>(articleTitle.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GuideDescriptionsCompanion(')
+          ..write('scientificName: $scientificName, ')
+          ..write('lang: $lang, ')
+          ..write('body: $body, ')
+          ..write('articleTitle: $articleTitle, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EncyclopediaPacksTable extends EncyclopediaPacks
+    with TableInfo<$EncyclopediaPacksTable, EncyclopediaPackRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EncyclopediaPacksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _radiusKmMeta = const VerificationMeta(
+    'radiusKm',
+  );
+  @override
+  late final GeneratedColumn<double> radiusKm = GeneratedColumn<double>(
+    'radius_km',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _languagesMeta = const VerificationMeta(
+    'languages',
+  );
+  @override
+  late final GeneratedColumn<String> languages = GeneratedColumn<String>(
+    'languages',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _withPhotosMeta = const VerificationMeta(
+    'withPhotos',
+  );
+  @override
+  late final GeneratedColumn<bool> withPhotos = GeneratedColumn<bool>(
+    'with_photos',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("with_photos" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    latitude,
+    longitude,
+    radiusKm,
+    languages,
+    withPhotos,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'encyclopedia_packs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EncyclopediaPackRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('radius_km')) {
+      context.handle(
+        _radiusKmMeta,
+        radiusKm.isAcceptableOrUnknown(data['radius_km']!, _radiusKmMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_radiusKmMeta);
+    }
+    if (data.containsKey('languages')) {
+      context.handle(
+        _languagesMeta,
+        languages.isAcceptableOrUnknown(data['languages']!, _languagesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_languagesMeta);
+    }
+    if (data.containsKey('with_photos')) {
+      context.handle(
+        _withPhotosMeta,
+        withPhotos.isAcceptableOrUnknown(data['with_photos']!, _withPhotosMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EncyclopediaPackRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EncyclopediaPackRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      radiusKm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}radius_km'],
+      )!,
+      languages: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}languages'],
+      )!,
+      withPhotos: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}with_photos'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $EncyclopediaPacksTable createAlias(String alias) {
+    return $EncyclopediaPacksTable(attachedDatabase, alias);
+  }
+}
+
+class EncyclopediaPackRow extends DataClass
+    implements Insertable<EncyclopediaPackRow> {
+  final int id;
+  final String name;
+  final double latitude;
+  final double longitude;
+  final double radiusKm;
+
+  /// Comma-separated language codes, e.g. "en,ru".
+  final String languages;
+  final bool withPhotos;
+  final DateTime createdAt;
+  const EncyclopediaPackRow({
+    required this.id,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    required this.radiusKm,
+    required this.languages,
+    required this.withPhotos,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    map['radius_km'] = Variable<double>(radiusKm);
+    map['languages'] = Variable<String>(languages);
+    map['with_photos'] = Variable<bool>(withPhotos);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  EncyclopediaPacksCompanion toCompanion(bool nullToAbsent) {
+    return EncyclopediaPacksCompanion(
+      id: Value(id),
+      name: Value(name),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      radiusKm: Value(radiusKm),
+      languages: Value(languages),
+      withPhotos: Value(withPhotos),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory EncyclopediaPackRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EncyclopediaPackRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      radiusKm: serializer.fromJson<double>(json['radiusKm']),
+      languages: serializer.fromJson<String>(json['languages']),
+      withPhotos: serializer.fromJson<bool>(json['withPhotos']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'radiusKm': serializer.toJson<double>(radiusKm),
+      'languages': serializer.toJson<String>(languages),
+      'withPhotos': serializer.toJson<bool>(withPhotos),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  EncyclopediaPackRow copyWith({
+    int? id,
+    String? name,
+    double? latitude,
+    double? longitude,
+    double? radiusKm,
+    String? languages,
+    bool? withPhotos,
+    DateTime? createdAt,
+  }) => EncyclopediaPackRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    radiusKm: radiusKm ?? this.radiusKm,
+    languages: languages ?? this.languages,
+    withPhotos: withPhotos ?? this.withPhotos,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  EncyclopediaPackRow copyWithCompanion(EncyclopediaPacksCompanion data) {
+    return EncyclopediaPackRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      radiusKm: data.radiusKm.present ? data.radiusKm.value : this.radiusKm,
+      languages: data.languages.present ? data.languages.value : this.languages,
+      withPhotos: data.withPhotos.present
+          ? data.withPhotos.value
+          : this.withPhotos,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EncyclopediaPackRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusKm: $radiusKm, ')
+          ..write('languages: $languages, ')
+          ..write('withPhotos: $withPhotos, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    latitude,
+    longitude,
+    radiusKm,
+    languages,
+    withPhotos,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EncyclopediaPackRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.radiusKm == this.radiusKm &&
+          other.languages == this.languages &&
+          other.withPhotos == this.withPhotos &&
+          other.createdAt == this.createdAt);
+}
+
+class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<double> radiusKm;
+  final Value<String> languages;
+  final Value<bool> withPhotos;
+  final Value<DateTime> createdAt;
+  const EncyclopediaPacksCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.radiusKm = const Value.absent(),
+    this.languages = const Value.absent(),
+    this.withPhotos = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  EncyclopediaPacksCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required double latitude,
+    required double longitude,
+    required double radiusKm,
+    required String languages,
+    this.withPhotos = const Value.absent(),
+    required DateTime createdAt,
+  }) : name = Value(name),
+       latitude = Value(latitude),
+       longitude = Value(longitude),
+       radiusKm = Value(radiusKm),
+       languages = Value(languages),
+       createdAt = Value(createdAt);
+  static Insertable<EncyclopediaPackRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? radiusKm,
+    Expression<String>? languages,
+    Expression<bool>? withPhotos,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (radiusKm != null) 'radius_km': radiusKm,
+      if (languages != null) 'languages': languages,
+      if (withPhotos != null) 'with_photos': withPhotos,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  EncyclopediaPacksCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<double>? radiusKm,
+    Value<String>? languages,
+    Value<bool>? withPhotos,
+    Value<DateTime>? createdAt,
+  }) {
+    return EncyclopediaPacksCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      radiusKm: radiusKm ?? this.radiusKm,
+      languages: languages ?? this.languages,
+      withPhotos: withPhotos ?? this.withPhotos,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (radiusKm.present) {
+      map['radius_km'] = Variable<double>(radiusKm.value);
+    }
+    if (languages.present) {
+      map['languages'] = Variable<String>(languages.value);
+    }
+    if (withPhotos.present) {
+      map['with_photos'] = Variable<bool>(withPhotos.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EncyclopediaPacksCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusKm: $radiusKm, ')
+          ..write('languages: $languages, ')
+          ..write('withPhotos: $withPhotos, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EncyclopediaPackSpeciesTable extends EncyclopediaPackSpecies
+    with TableInfo<$EncyclopediaPackSpeciesTable, EncyclopediaPackSpeciesRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EncyclopediaPackSpeciesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _packIdMeta = const VerificationMeta('packId');
+  @override
+  late final GeneratedColumn<int> packId = GeneratedColumn<int>(
+    'pack_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES encyclopedia_packs (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _scientificNameMeta = const VerificationMeta(
+    'scientificName',
+  );
+  @override
+  late final GeneratedColumn<String> scientificName = GeneratedColumn<String>(
+    'scientific_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _commonNameMeta = const VerificationMeta(
+    'commonName',
+  );
+  @override
+  late final GeneratedColumn<String> commonName = GeneratedColumn<String>(
+    'common_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [packId, scientificName, commonName];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'encyclopedia_pack_species';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EncyclopediaPackSpeciesRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('pack_id')) {
+      context.handle(
+        _packIdMeta,
+        packId.isAcceptableOrUnknown(data['pack_id']!, _packIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_packIdMeta);
+    }
+    if (data.containsKey('scientific_name')) {
+      context.handle(
+        _scientificNameMeta,
+        scientificName.isAcceptableOrUnknown(
+          data['scientific_name']!,
+          _scientificNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scientificNameMeta);
+    }
+    if (data.containsKey('common_name')) {
+      context.handle(
+        _commonNameMeta,
+        commonName.isAcceptableOrUnknown(data['common_name']!, _commonNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_commonNameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {packId, scientificName};
+  @override
+  EncyclopediaPackSpeciesRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EncyclopediaPackSpeciesRow(
+      packId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}pack_id'],
+      )!,
+      scientificName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scientific_name'],
+      )!,
+      commonName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}common_name'],
+      )!,
+    );
+  }
+
+  @override
+  $EncyclopediaPackSpeciesTable createAlias(String alias) {
+    return $EncyclopediaPackSpeciesTable(attachedDatabase, alias);
+  }
+}
+
+class EncyclopediaPackSpeciesRow extends DataClass
+    implements Insertable<EncyclopediaPackSpeciesRow> {
+  final int packId;
+  final String scientificName;
+  final String commonName;
+  const EncyclopediaPackSpeciesRow({
+    required this.packId,
+    required this.scientificName,
+    required this.commonName,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['pack_id'] = Variable<int>(packId);
+    map['scientific_name'] = Variable<String>(scientificName);
+    map['common_name'] = Variable<String>(commonName);
+    return map;
+  }
+
+  EncyclopediaPackSpeciesCompanion toCompanion(bool nullToAbsent) {
+    return EncyclopediaPackSpeciesCompanion(
+      packId: Value(packId),
+      scientificName: Value(scientificName),
+      commonName: Value(commonName),
+    );
+  }
+
+  factory EncyclopediaPackSpeciesRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EncyclopediaPackSpeciesRow(
+      packId: serializer.fromJson<int>(json['packId']),
+      scientificName: serializer.fromJson<String>(json['scientificName']),
+      commonName: serializer.fromJson<String>(json['commonName']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'packId': serializer.toJson<int>(packId),
+      'scientificName': serializer.toJson<String>(scientificName),
+      'commonName': serializer.toJson<String>(commonName),
+    };
+  }
+
+  EncyclopediaPackSpeciesRow copyWith({
+    int? packId,
+    String? scientificName,
+    String? commonName,
+  }) => EncyclopediaPackSpeciesRow(
+    packId: packId ?? this.packId,
+    scientificName: scientificName ?? this.scientificName,
+    commonName: commonName ?? this.commonName,
+  );
+  EncyclopediaPackSpeciesRow copyWithCompanion(
+    EncyclopediaPackSpeciesCompanion data,
+  ) {
+    return EncyclopediaPackSpeciesRow(
+      packId: data.packId.present ? data.packId.value : this.packId,
+      scientificName: data.scientificName.present
+          ? data.scientificName.value
+          : this.scientificName,
+      commonName: data.commonName.present
+          ? data.commonName.value
+          : this.commonName,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EncyclopediaPackSpeciesRow(')
+          ..write('packId: $packId, ')
+          ..write('scientificName: $scientificName, ')
+          ..write('commonName: $commonName')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(packId, scientificName, commonName);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EncyclopediaPackSpeciesRow &&
+          other.packId == this.packId &&
+          other.scientificName == this.scientificName &&
+          other.commonName == this.commonName);
+}
+
+class EncyclopediaPackSpeciesCompanion
+    extends UpdateCompanion<EncyclopediaPackSpeciesRow> {
+  final Value<int> packId;
+  final Value<String> scientificName;
+  final Value<String> commonName;
+  final Value<int> rowid;
+  const EncyclopediaPackSpeciesCompanion({
+    this.packId = const Value.absent(),
+    this.scientificName = const Value.absent(),
+    this.commonName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EncyclopediaPackSpeciesCompanion.insert({
+    required int packId,
+    required String scientificName,
+    required String commonName,
+    this.rowid = const Value.absent(),
+  }) : packId = Value(packId),
+       scientificName = Value(scientificName),
+       commonName = Value(commonName);
+  static Insertable<EncyclopediaPackSpeciesRow> custom({
+    Expression<int>? packId,
+    Expression<String>? scientificName,
+    Expression<String>? commonName,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (packId != null) 'pack_id': packId,
+      if (scientificName != null) 'scientific_name': scientificName,
+      if (commonName != null) 'common_name': commonName,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EncyclopediaPackSpeciesCompanion copyWith({
+    Value<int>? packId,
+    Value<String>? scientificName,
+    Value<String>? commonName,
+    Value<int>? rowid,
+  }) {
+    return EncyclopediaPackSpeciesCompanion(
+      packId: packId ?? this.packId,
+      scientificName: scientificName ?? this.scientificName,
+      commonName: commonName ?? this.commonName,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (packId.present) {
+      map['pack_id'] = Variable<int>(packId.value);
+    }
+    if (scientificName.present) {
+      map['scientific_name'] = Variable<String>(scientificName.value);
+    }
+    if (commonName.present) {
+      map['common_name'] = Variable<String>(commonName.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EncyclopediaPackSpeciesCompanion(')
+          ..write('packId: $packId, ')
+          ..write('scientificName: $scientificName, ')
+          ..write('commonName: $commonName, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2334,6 +3501,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SightingPhotosTable sightingPhotos = $SightingPhotosTable(this);
   late final $SpeciesTable species = $SpeciesTable(this);
   late final $DetectionsTable detections = $DetectionsTable(this);
+  late final $GuideDescriptionsTable guideDescriptions =
+      $GuideDescriptionsTable(this);
+  late final $EncyclopediaPacksTable encyclopediaPacks =
+      $EncyclopediaPacksTable(this);
+  late final $EncyclopediaPackSpeciesTable encyclopediaPackSpecies =
+      $EncyclopediaPackSpeciesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2344,6 +3517,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     sightingPhotos,
     species,
     detections,
+    guideDescriptions,
+    encyclopediaPacks,
+    encyclopediaPackSpecies,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2388,6 +3564,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('detections', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'encyclopedia_packs',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('encyclopedia_pack_species', kind: UpdateKind.delete),
+      ],
     ),
   ]);
 }
@@ -4774,6 +5959,928 @@ typedef $$DetectionsTableProcessedTableManager =
       DetectionRow,
       PrefetchHooks Function({bool sessionId, bool speciesId})
     >;
+typedef $$GuideDescriptionsTableCreateCompanionBuilder =
+    GuideDescriptionsCompanion Function({
+      required String scientificName,
+      required String lang,
+      required String body,
+      required String articleTitle,
+      required DateTime fetchedAt,
+      Value<int> rowid,
+    });
+typedef $$GuideDescriptionsTableUpdateCompanionBuilder =
+    GuideDescriptionsCompanion Function({
+      Value<String> scientificName,
+      Value<String> lang,
+      Value<String> body,
+      Value<String> articleTitle,
+      Value<DateTime> fetchedAt,
+      Value<int> rowid,
+    });
+
+class $$GuideDescriptionsTableFilterComposer
+    extends Composer<_$AppDatabase, $GuideDescriptionsTable> {
+  $$GuideDescriptionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lang => $composableBuilder(
+    column: $table.lang,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get articleTitle => $composableBuilder(
+    column: $table.articleTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GuideDescriptionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GuideDescriptionsTable> {
+  $$GuideDescriptionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lang => $composableBuilder(
+    column: $table.lang,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get articleTitle => $composableBuilder(
+    column: $table.articleTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GuideDescriptionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GuideDescriptionsTable> {
+  $$GuideDescriptionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lang =>
+      $composableBuilder(column: $table.lang, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get articleTitle => $composableBuilder(
+    column: $table.articleTitle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+}
+
+class $$GuideDescriptionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GuideDescriptionsTable,
+          GuideDescriptionRow,
+          $$GuideDescriptionsTableFilterComposer,
+          $$GuideDescriptionsTableOrderingComposer,
+          $$GuideDescriptionsTableAnnotationComposer,
+          $$GuideDescriptionsTableCreateCompanionBuilder,
+          $$GuideDescriptionsTableUpdateCompanionBuilder,
+          (
+            GuideDescriptionRow,
+            BaseReferences<
+              _$AppDatabase,
+              $GuideDescriptionsTable,
+              GuideDescriptionRow
+            >,
+          ),
+          GuideDescriptionRow,
+          PrefetchHooks Function()
+        > {
+  $$GuideDescriptionsTableTableManager(
+    _$AppDatabase db,
+    $GuideDescriptionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GuideDescriptionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GuideDescriptionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GuideDescriptionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> scientificName = const Value.absent(),
+                Value<String> lang = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> articleTitle = const Value.absent(),
+                Value<DateTime> fetchedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GuideDescriptionsCompanion(
+                scientificName: scientificName,
+                lang: lang,
+                body: body,
+                articleTitle: articleTitle,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String scientificName,
+                required String lang,
+                required String body,
+                required String articleTitle,
+                required DateTime fetchedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => GuideDescriptionsCompanion.insert(
+                scientificName: scientificName,
+                lang: lang,
+                body: body,
+                articleTitle: articleTitle,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$GuideDescriptionsTable, GuideDescriptionRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $GuideDescriptionsTable,
+                    GuideDescriptionRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GuideDescriptionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GuideDescriptionsTable,
+      GuideDescriptionRow,
+      $$GuideDescriptionsTableFilterComposer,
+      $$GuideDescriptionsTableOrderingComposer,
+      $$GuideDescriptionsTableAnnotationComposer,
+      $$GuideDescriptionsTableCreateCompanionBuilder,
+      $$GuideDescriptionsTableUpdateCompanionBuilder,
+      (
+        GuideDescriptionRow,
+        BaseReferences<
+          _$AppDatabase,
+          $GuideDescriptionsTable,
+          GuideDescriptionRow
+        >,
+      ),
+      GuideDescriptionRow,
+      PrefetchHooks Function()
+    >;
+typedef $$EncyclopediaPacksTableCreateCompanionBuilder =
+    EncyclopediaPacksCompanion Function({
+      Value<int> id,
+      required String name,
+      required double latitude,
+      required double longitude,
+      required double radiusKm,
+      required String languages,
+      Value<bool> withPhotos,
+      required DateTime createdAt,
+    });
+typedef $$EncyclopediaPacksTableUpdateCompanionBuilder =
+    EncyclopediaPacksCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<double> latitude,
+      Value<double> longitude,
+      Value<double> radiusKm,
+      Value<String> languages,
+      Value<bool> withPhotos,
+      Value<DateTime> createdAt,
+    });
+
+final class $$EncyclopediaPacksTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $EncyclopediaPacksTable,
+          EncyclopediaPackRow
+        > {
+  $$EncyclopediaPacksTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<
+    $EncyclopediaPackSpeciesTable,
+    List<EncyclopediaPackSpeciesRow>
+  >
+  _encyclopediaPackSpeciesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.encyclopediaPackSpecies,
+        aliasName: 'encyclopedia_packs__id__encyclopedia_pack_species__pack_id',
+      );
+
+  $$EncyclopediaPackSpeciesTableProcessedTableManager
+  get encyclopediaPackSpeciesRefs {
+    final manager = $$EncyclopediaPackSpeciesTableTableManager(
+      $_db,
+      $_db.encyclopediaPackSpecies,
+    ).filter((f) => f.packId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _encyclopediaPackSpeciesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$EncyclopediaPacksTableFilterComposer
+    extends Composer<_$AppDatabase, $EncyclopediaPacksTable> {
+  $$EncyclopediaPacksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get radiusKm => $composableBuilder(
+    column: $table.radiusKm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get languages => $composableBuilder(
+    column: $table.languages,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get withPhotos => $composableBuilder(
+    column: $table.withPhotos,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> encyclopediaPackSpeciesRefs(
+    Expression<bool> Function($$EncyclopediaPackSpeciesTableFilterComposer f) f,
+  ) {
+    final $$EncyclopediaPackSpeciesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.encyclopediaPackSpecies,
+          getReferencedColumn: (t) => t.packId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$EncyclopediaPackSpeciesTableFilterComposer(
+                $db: $db,
+                $table: $db.encyclopediaPackSpecies,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$EncyclopediaPacksTableOrderingComposer
+    extends Composer<_$AppDatabase, $EncyclopediaPacksTable> {
+  $$EncyclopediaPacksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get radiusKm => $composableBuilder(
+    column: $table.radiusKm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get languages => $composableBuilder(
+    column: $table.languages,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get withPhotos => $composableBuilder(
+    column: $table.withPhotos,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$EncyclopediaPacksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EncyclopediaPacksTable> {
+  $$EncyclopediaPacksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get radiusKm =>
+      $composableBuilder(column: $table.radiusKm, builder: (column) => column);
+
+  GeneratedColumn<String> get languages =>
+      $composableBuilder(column: $table.languages, builder: (column) => column);
+
+  GeneratedColumn<bool> get withPhotos => $composableBuilder(
+    column: $table.withPhotos,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> encyclopediaPackSpeciesRefs<T extends Object>(
+    Expression<T> Function($$EncyclopediaPackSpeciesTableAnnotationComposer a)
+    f,
+  ) {
+    final $$EncyclopediaPackSpeciesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.encyclopediaPackSpecies,
+          getReferencedColumn: (t) => t.packId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$EncyclopediaPackSpeciesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.encyclopediaPackSpecies,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$EncyclopediaPacksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EncyclopediaPacksTable,
+          EncyclopediaPackRow,
+          $$EncyclopediaPacksTableFilterComposer,
+          $$EncyclopediaPacksTableOrderingComposer,
+          $$EncyclopediaPacksTableAnnotationComposer,
+          $$EncyclopediaPacksTableCreateCompanionBuilder,
+          $$EncyclopediaPacksTableUpdateCompanionBuilder,
+          (EncyclopediaPackRow, $$EncyclopediaPacksTableReferences),
+          EncyclopediaPackRow,
+          PrefetchHooks Function({bool encyclopediaPackSpeciesRefs})
+        > {
+  $$EncyclopediaPacksTableTableManager(
+    _$AppDatabase db,
+    $EncyclopediaPacksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EncyclopediaPacksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EncyclopediaPacksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EncyclopediaPacksTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<double> radiusKm = const Value.absent(),
+                Value<String> languages = const Value.absent(),
+                Value<bool> withPhotos = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => EncyclopediaPacksCompanion(
+                id: id,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusKm: radiusKm,
+                languages: languages,
+                withPhotos: withPhotos,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required double latitude,
+                required double longitude,
+                required double radiusKm,
+                required String languages,
+                Value<bool> withPhotos = const Value.absent(),
+                required DateTime createdAt,
+              }) => EncyclopediaPacksCompanion.insert(
+                id: id,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusKm: radiusKm,
+                languages: languages,
+                withPhotos: withPhotos,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EncyclopediaPacksTable, EncyclopediaPackRow>(
+                    table,
+                  ),
+                  $$EncyclopediaPacksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({encyclopediaPackSpeciesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (encyclopediaPackSpeciesRefs) db.encyclopediaPackSpecies,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (encyclopediaPackSpeciesRefs)
+                    await $_getPrefetchedData<
+                      EncyclopediaPackRow,
+                      $EncyclopediaPacksTable,
+                      EncyclopediaPackSpeciesRow
+                    >(
+                      currentTable: table,
+                      referencedTable: $$EncyclopediaPacksTableReferences
+                          ._encyclopediaPackSpeciesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$EncyclopediaPacksTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).encyclopediaPackSpeciesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.packId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EncyclopediaPacksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EncyclopediaPacksTable,
+      EncyclopediaPackRow,
+      $$EncyclopediaPacksTableFilterComposer,
+      $$EncyclopediaPacksTableOrderingComposer,
+      $$EncyclopediaPacksTableAnnotationComposer,
+      $$EncyclopediaPacksTableCreateCompanionBuilder,
+      $$EncyclopediaPacksTableUpdateCompanionBuilder,
+      (EncyclopediaPackRow, $$EncyclopediaPacksTableReferences),
+      EncyclopediaPackRow,
+      PrefetchHooks Function({bool encyclopediaPackSpeciesRefs})
+    >;
+typedef $$EncyclopediaPackSpeciesTableCreateCompanionBuilder =
+    EncyclopediaPackSpeciesCompanion Function({
+      required int packId,
+      required String scientificName,
+      required String commonName,
+      Value<int> rowid,
+    });
+typedef $$EncyclopediaPackSpeciesTableUpdateCompanionBuilder =
+    EncyclopediaPackSpeciesCompanion Function({
+      Value<int> packId,
+      Value<String> scientificName,
+      Value<String> commonName,
+      Value<int> rowid,
+    });
+
+final class $$EncyclopediaPackSpeciesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $EncyclopediaPackSpeciesTable,
+          EncyclopediaPackSpeciesRow
+        > {
+  $$EncyclopediaPackSpeciesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $EncyclopediaPacksTable _packIdTable(_$AppDatabase db) =>
+      db.encyclopediaPacks.createAlias(
+        'encyclopedia_pack_species__pack_id__encyclopedia_packs__id',
+      );
+
+  $$EncyclopediaPacksTableProcessedTableManager get packId {
+    final $_column = $_itemColumn<int>('pack_id')!;
+
+    final manager = $$EncyclopediaPacksTableTableManager(
+      $_db,
+      $_db.encyclopediaPacks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_packIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EncyclopediaPackSpeciesTableFilterComposer
+    extends Composer<_$AppDatabase, $EncyclopediaPackSpeciesTable> {
+  $$EncyclopediaPackSpeciesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get commonName => $composableBuilder(
+    column: $table.commonName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$EncyclopediaPacksTableFilterComposer get packId {
+    final $$EncyclopediaPacksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.packId,
+      referencedTable: $db.encyclopediaPacks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EncyclopediaPacksTableFilterComposer(
+            $db: $db,
+            $table: $db.encyclopediaPacks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EncyclopediaPackSpeciesTableOrderingComposer
+    extends Composer<_$AppDatabase, $EncyclopediaPackSpeciesTable> {
+  $$EncyclopediaPackSpeciesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get commonName => $composableBuilder(
+    column: $table.commonName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$EncyclopediaPacksTableOrderingComposer get packId {
+    final $$EncyclopediaPacksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.packId,
+      referencedTable: $db.encyclopediaPacks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EncyclopediaPacksTableOrderingComposer(
+            $db: $db,
+            $table: $db.encyclopediaPacks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EncyclopediaPackSpeciesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EncyclopediaPackSpeciesTable> {
+  $$EncyclopediaPackSpeciesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get commonName => $composableBuilder(
+    column: $table.commonName,
+    builder: (column) => column,
+  );
+
+  $$EncyclopediaPacksTableAnnotationComposer get packId {
+    final $$EncyclopediaPacksTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.packId,
+          referencedTable: $db.encyclopediaPacks,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$EncyclopediaPacksTableAnnotationComposer(
+                $db: $db,
+                $table: $db.encyclopediaPacks,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$EncyclopediaPackSpeciesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EncyclopediaPackSpeciesTable,
+          EncyclopediaPackSpeciesRow,
+          $$EncyclopediaPackSpeciesTableFilterComposer,
+          $$EncyclopediaPackSpeciesTableOrderingComposer,
+          $$EncyclopediaPackSpeciesTableAnnotationComposer,
+          $$EncyclopediaPackSpeciesTableCreateCompanionBuilder,
+          $$EncyclopediaPackSpeciesTableUpdateCompanionBuilder,
+          (
+            EncyclopediaPackSpeciesRow,
+            $$EncyclopediaPackSpeciesTableReferences,
+          ),
+          EncyclopediaPackSpeciesRow,
+          PrefetchHooks Function({bool packId})
+        > {
+  $$EncyclopediaPackSpeciesTableTableManager(
+    _$AppDatabase db,
+    $EncyclopediaPackSpeciesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EncyclopediaPackSpeciesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$EncyclopediaPackSpeciesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$EncyclopediaPackSpeciesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> packId = const Value.absent(),
+                Value<String> scientificName = const Value.absent(),
+                Value<String> commonName = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EncyclopediaPackSpeciesCompanion(
+                packId: packId,
+                scientificName: scientificName,
+                commonName: commonName,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int packId,
+                required String scientificName,
+                required String commonName,
+                Value<int> rowid = const Value.absent(),
+              }) => EncyclopediaPackSpeciesCompanion.insert(
+                packId: packId,
+                scientificName: scientificName,
+                commonName: commonName,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $EncyclopediaPackSpeciesTable,
+                    EncyclopediaPackSpeciesRow
+                  >(table),
+                  $$EncyclopediaPackSpeciesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({packId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (packId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.packId,
+                        referencedTable:
+                            $$EncyclopediaPackSpeciesTableReferences
+                                ._packIdTable(db),
+                        referencedColumn:
+                            $$EncyclopediaPackSpeciesTableReferences
+                                ._packIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EncyclopediaPackSpeciesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EncyclopediaPackSpeciesTable,
+      EncyclopediaPackSpeciesRow,
+      $$EncyclopediaPackSpeciesTableFilterComposer,
+      $$EncyclopediaPackSpeciesTableOrderingComposer,
+      $$EncyclopediaPackSpeciesTableAnnotationComposer,
+      $$EncyclopediaPackSpeciesTableCreateCompanionBuilder,
+      $$EncyclopediaPackSpeciesTableUpdateCompanionBuilder,
+      (EncyclopediaPackSpeciesRow, $$EncyclopediaPackSpeciesTableReferences),
+      EncyclopediaPackSpeciesRow,
+      PrefetchHooks Function({bool packId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4788,4 +6895,13 @@ class $AppDatabaseManager {
       $$SpeciesTableTableManager(_db, _db.species);
   $$DetectionsTableTableManager get detections =>
       $$DetectionsTableTableManager(_db, _db.detections);
+  $$GuideDescriptionsTableTableManager get guideDescriptions =>
+      $$GuideDescriptionsTableTableManager(_db, _db.guideDescriptions);
+  $$EncyclopediaPacksTableTableManager get encyclopediaPacks =>
+      $$EncyclopediaPacksTableTableManager(_db, _db.encyclopediaPacks);
+  $$EncyclopediaPackSpeciesTableTableManager get encyclopediaPackSpecies =>
+      $$EncyclopediaPackSpeciesTableTableManager(
+        _db,
+        _db.encyclopediaPackSpecies,
+      );
 }

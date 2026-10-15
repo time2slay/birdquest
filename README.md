@@ -17,7 +17,13 @@ Flutter · Riverpod · Drift (SQLite) · ONNX Runtime · BirdNET+ V3.0 · Materi
 | Location and season filter (BirdNET+ Geomodel V3.0.4) | **Working.** Verified on the phone: limits results to species plausible at your approximate location this week; toggle under ⋮ or About |
 | Day / Night theme | **Working.** Follows the phone by default; sun/moon button in the top bar cycles System → Day → Night (persisted) |
 | App icon, splash, empty-state art | Done: adaptive launcher icon, night-aware splash, and day/night illustration sets |
-| Licensed reference bird photos | **Not yet.** Labeled placeholder illustrations are used |
+| Reference photos + names (EN/RU) | **Working.** Bundled index from Wikidata/Wikipedia/Commons (~9,800 birds); one licensed Commons photo per species downloaded on demand and cached, with author/license credit |
+| Descriptions | Fetched once per species from Wikipedia (EN or RU, follows phone; switch in Settings) and cached; offline via Encyclopedia |
+| Encyclopedia (optional) | **Working.** User picks an area on the map (25/100/300 km) and languages; the geo model finds every bird living there year-round; downloads text and photos |
+| Map | **Working.** OpenFreeMap tiles (day/night); pins show the species' reference photo with a count per ~1 km area; tap for preview, description and stats |
+| Achievements | **Working.** 17 local badges (milestones, owls, dawn chorus, streaks…); demo sightings never count |
+| Leaderboard / shared player sightings | **Not yet.** Needs a backend. Map counts are currently your own sightings |
+| Licensed reference bird photos (bundled) | None bundled; placeholders when offline/no licensed photo |
 
 ## Run
 
@@ -34,7 +40,7 @@ On first launch, tap **Download (81 MB)** to install the models, or use **Try de
 ## Tests
 
 ```bash
-D:/flutter/bin/flutter test                     # 41 unit and widget tests
+D:/flutter/bin/flutter test                     # 68 unit and widget tests
 ```
 
 `integration_test/birdnet_inference_test.dart` runs the real model on a device. Before running it, push a 32 kHz mono PCM16 recording, as described in the file header.
@@ -68,4 +74,7 @@ Photos and clips are stored under the app documents directory (`media/sightings/
 - **Pipeline design:** follows BirdNET Live (MIT).
 - **Do not** switch to BirdNET V2.4: its weights are CC BY-NC, which rules out commercial use, including ads.
 - **Reference photos:** Cornell / Macaulay species images are mostly NC or ©, so none are bundled.
+- **Species index:** `tool/build_species_info.py` rebuilds `assets/data/species_index.json.gz` from Wikidata (CC0), Wikipedia titles and Commons licenses. It keeps only photos whose license allows commercial use (CC0, PD, CC BY, CC BY-SA) and always shows author + license on large images.
+- **Descriptions:** Wikipedia (EN, RU), CC BY-SA 4.0, attributed with a link on every description.
+- **Map:** © OpenStreetMap contributors, tiles by OpenFreeMap.
 - **UI artwork:** the app icon, empty-state illustrations (day and night) and the topographic texture in `assets/` were generated for BirdQuest with Google Flow (Nano Banana 2.1). They are decorative and never depict a specific species.

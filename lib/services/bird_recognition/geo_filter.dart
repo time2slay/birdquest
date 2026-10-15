@@ -36,15 +36,17 @@ class GeoContext {
 
 /// The set of audio-model species plausible at one place and week.
 class SpeciesRange {
-  SpeciesRange._(this.context, this._blocked, this.plausibleCount);
+  SpeciesRange._(this.context, this._blocked, this.plausible);
 
   final GeoContext context;
 
   /// Scientific names of audio-model birds the geo model rules out.
   final Set<String> _blocked;
 
-  /// Number of audio-model birds considered plausible here.
-  final int plausibleCount;
+  /// Audio-model birds the geo model considers plausible here.
+  final Set<String> plausible;
+
+  int get plausibleCount => plausible.length;
 
   /// Species the geo model does not know are always allowed, so the filter
   /// can only remove out-of-range predictions, never hide unknown birds.
@@ -68,13 +70,13 @@ class SpeciesRange {
       for (var i = 0; i < geoLabels.length; i++) geoLabels[i]: probabilities[i],
     };
     final blocked = <String>{};
-    var plausible = 0;
+    final plausible = <String>{};
     for (final label in audioLabels) {
       if (!label.isBird) continue;
       final p = score[label.scientificName];
       if (p == null || p.isNaN) continue;
       if (p >= threshold) {
-        plausible++;
+        plausible.add(label.scientificName);
       } else {
         blocked.add(label.scientificName);
       }

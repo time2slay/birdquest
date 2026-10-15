@@ -148,3 +148,47 @@ class Encounter {
 
   bool get hasLocation => latitude != null && longitude != null;
 }
+
+/// A confirmed sighting that has GPS coordinates, for the map.
+class LocatedSighting {
+  const LocatedSighting({
+    required this.sightingId,
+    required this.speciesId,
+    required this.scientificName,
+    required this.commonName,
+    required this.latitude,
+    required this.longitude,
+    required this.confirmedAt,
+    required this.isDemo,
+  });
+
+  final int sightingId;
+  final int speciesId;
+  final String scientificName;
+  final String commonName;
+  final double latitude;
+  final double longitude;
+  final DateTime confirmedAt;
+  final bool isDemo;
+}
+
+/// Minimal sighting facts used to compute achievements.
+class SightingFact {
+  const SightingFact({
+    required this.speciesId,
+    required this.scientificName,
+    required this.confirmedAt,
+    this.taxonOrder,
+    this.sessionId,
+    this.latitude,
+    this.longitude,
+  });
+
+  final int speciesId;
+  final String scientificName;
+  final String? taxonOrder;
+  final DateTime confirmedAt;
+  final int? sessionId;
+  final double? latitude;
+  final double? longitude;
+}

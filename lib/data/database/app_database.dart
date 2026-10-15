@@ -6,14 +6,23 @@ import 'tables.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Species, Sessions, Detections, Sightings, SightingPhotos],
+  tables: [
+    Species,
+    Sessions,
+    Detections,
+    Sightings,
+    SightingPhotos,
+    GuideDescriptions,
+    EncyclopediaPacks,
+    EncyclopediaPackSpecies,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? driftDatabase(name: 'birdquest'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -22,8 +31,12 @@ class AppDatabase extends _$AppDatabase {
       await _createIndexes();
     },
     onUpgrade: (m, from, to) async {
-      // Add stepwise migrations here as the schema evolves, e.g.
-      // if (from < 2) await m.addColumn(sightings, sightings.weather);
+      if (from < 2) {
+        // v2: species guide description cache and Encyclopedia packs.
+        await m.createTable(guideDescriptions);
+        await m.createTable(encyclopediaPacks);
+        await m.createTable(encyclopediaPackSpecies);
+      }
     },
     beforeOpen: (details) async {
       // SQLite leaves FK enforcement off by default; cascades depend on it.

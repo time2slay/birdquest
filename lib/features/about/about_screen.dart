@@ -120,6 +120,53 @@ class AboutScreen extends ConsumerWidget {
                 ref.read(themeModeProvider.notifier).set(s.first),
           ),
           const SizedBox(height: Space.xl),
+          Text('Species guide', style: theme.textTheme.titleLarge),
+          const SizedBox(height: Space.sm),
+          Text('Names and descriptions', style: theme.textTheme.titleSmall),
+          const SizedBox(height: Space.xs),
+          SegmentedButton<GuideLanguageMode>(
+            segments: const [
+              ButtonSegment(value: GuideLanguageMode.auto, label: Text('Auto')),
+              ButtonSegment(
+                value: GuideLanguageMode.en,
+                label: Text('English'),
+              ),
+              ButtonSegment(
+                value: GuideLanguageMode.ru,
+                label: Text('Русский'),
+              ),
+            ],
+            selected: {ref.watch(guideLanguageModeProvider)},
+            onSelectionChanged: (s) =>
+                ref.read(guideLanguageModeProvider.notifier).set(s.first),
+          ),
+          const SizedBox(height: Space.xs),
+          Text(
+            'Auto uses Russian when your phone is set to Russian, otherwise '
+            'English.',
+            style: theme.textTheme.bodySmall,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: ref.watch(photoDownloadsEnabledProvider),
+            onChanged: (v) =>
+                ref.read(photoDownloadsEnabledProvider.notifier).set(v),
+            title: const Text('Download species photos'),
+            subtitle: const Text(
+              'Fetches one reference photo per species from Wikimedia '
+              'Commons when you first see it, then keeps it on the phone. '
+              'This tells Wikimedia which species you looked at.',
+            ),
+          ),
+          const _PhotoCacheRow(),
+          const SizedBox(height: Space.sm),
+          Text(
+            'Descriptions: Wikipedia (English, Russian), CC BY-SA 4.0. '
+            'Names: Wikidata, CC0. Photos: Wikimedia Commons; the author '
+            'and license are shown on each photo.',
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: Space.xl),
           Text('Privacy', style: theme.textTheme.titleLarge),
           const SizedBox(height: Space.sm),
           const Text(
@@ -127,7 +174,8 @@ class AboutScreen extends ConsumerWidget {
             'account, no cloud sync and no analytics. The only network '
             'request is the one-time model download you start yourself. '
             'The location filter reads your approximate position on the '
-            'phone and never stores or sends it.',
+            'phone and never stores or sends it. If species photos are on, '
+            'the app also requests one photo per species from Wikimedia.',
           ),
           const SizedBox(height: Space.xl),
           Text('Images & code', style: theme.textTheme.titleLarge),
@@ -166,6 +214,53 @@ class AboutScreen extends ConsumerWidget {
           const SizedBox(height: Space.xxl),
         ],
       ),
+    );
+  }
+}
+
+class _PhotoCacheRow extends ConsumerStatefulWidget {
+  const _PhotoCacheRow();
+
+  @override
+  ConsumerState<_PhotoCacheRow> createState() => _PhotoCacheRowState();
+}
+
+class _PhotoCacheRowState extends ConsumerState<_PhotoCacheRow> {
+  late Future<int> _size = ref.read(referencePhotoServiceProvider).cacheSize();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<int>(
+      future: _size,
+      builder: (context, snap) {
+        final mb = ((snap.data ?? 0) / 1e6).toStringAsFixed(1);
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Cached photos: $mb MB',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            TextButton(
+              onPressed: (snap.data ?? 0) == 0
+                  ? null
+                  : () async {
+                      await ref
+                          .read(referencePhotoServiceProvider)
+                          .clearCache();
+                      ref.invalidate(referencePhotoProvider);
+                      setState(() {
+                        _size = ref
+                            .read(referencePhotoServiceProvider)
+                            .cacheSize();
+                      });
+                    },
+              child: const Text('Clear'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

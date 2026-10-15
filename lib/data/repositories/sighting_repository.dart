@@ -233,6 +233,76 @@ class SightingRepository {
     ];
   }
 
+  /// Confirmed sightings with coordinates, newest first.
+  Stream<List<LocatedSighting>> watchLocatedSightings() {
+    final q =
+        _db.select(_db.sightings).join([
+            innerJoin(
+              _db.species,
+              _db.species.id.equalsExp(_db.sightings.speciesId),
+            ),
+          ])
+          ..where(
+            _db.sightings.latitude.isNotNull() &
+                _db.sightings.longitude.isNotNull(),
+          )
+          ..orderBy([OrderingTerm.desc(_db.sightings.confirmedAt)]);
+    return q.watch().map(
+      (rows) => [
+        for (final r in rows)
+          () {
+            final s = r.readTable(_db.sightings);
+            final sp = r.readTable(_db.species);
+            return LocatedSighting(
+              sightingId: s.id,
+              speciesId: sp.id,
+              scientificName: sp.scientificName,
+              commonName: sp.commonName,
+              latitude: s.latitude!,
+              longitude: s.longitude!,
+              confirmedAt: s.confirmedAt,
+              isDemo: s.isDemo,
+            );
+          }(),
+      ],
+    );
+  }
+
+  /// Facts about every real (non-demo) sighting, for achievements.
+  Stream<List<SightingFact>> watchSightingFacts() {
+    final q = _db.select(_db.sightings).join([
+      innerJoin(_db.species, _db.species.id.equalsExp(_db.sightings.speciesId)),
+    ])..where(_db.sightings.isDemo.equals(false));
+    return q.watch().map(
+      (rows) => [
+        for (final r in rows)
+          () {
+            final s = r.readTable(_db.sightings);
+            final sp = r.readTable(_db.species);
+            return SightingFact(
+              speciesId: sp.id,
+              scientificName: sp.scientificName,
+              taxonOrder: sp.taxonOrder,
+              confirmedAt: s.confirmedAt,
+              sessionId: s.sessionId,
+              latitude: s.latitude,
+              longitude: s.longitude,
+            );
+          }(),
+      ],
+    );
+  }
+
+  /// Number of photos attached to real (non-demo) sightings.
+  Stream<int> watchRealPhotoCount() => _db
+      .customSelect(
+        'SELECT COUNT(*) AS c FROM sighting_photos p '
+        'JOIN sightings s ON s.id = p.sighting_id WHERE s.is_demo = 0',
+        readsFrom: {_db.sightingPhotos, _db.sightings},
+      )
+      .watch()
+      .map((rows) => rows.single.read<int>('c'));
+
   /// Removes every encounter and session recorded in demo mode.
   Future<void> deleteDemoData() async {
     final demoSightings = await (_db.select(

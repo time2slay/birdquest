@@ -96,6 +96,12 @@ abstract final class AppTheme {
       onTertiaryContainer: p.onOchreContainer,
       error: p.error,
       onError: p.onAccent,
+      errorContainer: p.brightness == Brightness.light
+          ? const Color(0xFFF9DEDC)
+          : const Color(0xFF5A1D18),
+      onErrorContainer: p.brightness == Brightness.light
+          ? const Color(0xFF410E0B)
+          : const Color(0xFFFFDAD6),
       surface: p.surface,
       onSurface: p.ink,
       onSurfaceVariant: p.inkMuted,
@@ -190,7 +196,19 @@ abstract final class AppTheme {
           textStyle: text.labelLarge,
         ),
       ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? p.mossContainer : null,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? p.onMossContainer : p.ink,
+          ),
+        ),
+      ),
       chipTheme: base.chipTheme.copyWith(
+        selectedColor: p.mossContainer,
+        checkmarkColor: p.onMossContainer,
         backgroundColor: p.surfaceMuted,
         side: BorderSide.none,
         shape: const StadiumBorder(),

@@ -31,6 +31,12 @@ class _BirdQuestAppState extends ConsumerState<BirdQuestApp> {
       darkTheme: AppTheme.dark(),
       themeMode: ref.watch(themeModeProvider),
       routerConfig: _router,
+      // Keep content (and bottom buttons) clear of the system navigation
+      // bar on edge-to-edge Android.
+      builder: (context, child) => ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: SafeArea(top: false, left: false, right: false, child: child!),
+      ),
     );
   }
 }

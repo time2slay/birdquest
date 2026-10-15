@@ -9,6 +9,7 @@ import '../../shared/theme/illustrations.dart';
 import '../../shared/theme/tokens.dart';
 import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/common.dart';
+import '../../shared/widgets/guide_description.dart';
 import '../../shared/widgets/theme_toggle.dart';
 import 'cover_picker.dart';
 
@@ -24,7 +25,14 @@ class CollectionScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Bird Collection'),
-        actions: const [ThemeToggleButton()],
+        actions: [
+          IconButton(
+            tooltip: 'Achievements',
+            icon: const Icon(Icons.emoji_events_outlined),
+            onPressed: () => context.push('/achievements'),
+          ),
+          const ThemeToggleButton(),
+        ],
       ),
       body: collection.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -173,6 +181,7 @@ class _CollectionCard extends ConsumerWidget {
                     tag: 'collection-${entry.speciesId}',
                     child: BirdImage(
                       name: entry.commonName,
+                      scientificName: entry.scientificName,
                       coverPhotoPath: entry.coverPhotoPath,
                       referenceImage: entry.referenceImage,
                       cacheWidth: 480,
@@ -194,7 +203,11 @@ class _CollectionCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.commonName,
+                    speciesDisplayName(
+                      ref,
+                      entry.scientificName,
+                      entry.commonName,
+                    ),
                     style: theme.textTheme.titleMedium,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

@@ -208,41 +208,64 @@ class NoticeCard extends StatelessWidget {
       NoticeTone.error => theme.colorScheme.errorContainer,
       NoticeTone.info => nature.mossContainer,
     };
+    final fg = switch (tone) {
+      NoticeTone.warning => nature.onOchreContainer,
+      NoticeTone.error => theme.colorScheme.onErrorContainer,
+      NoticeTone.info => nature.onMossContainer,
+    };
     return Container(
       padding: const EdgeInsets.all(Space.lg),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(Radii.lg),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (illustration != null) ...[
-            Center(
-              child: Image.asset(
-                Illustrations.forBrightness(context, illustration!),
-                height: 112,
-                fit: BoxFit.contain,
-                excludeFromSemantics: true,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
-              ),
-            ),
-            const SizedBox(height: Space.md),
-          ],
-          Row(
+      child: IconTheme.merge(
+        data: IconThemeData(color: fg),
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: fg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 22),
-              const SizedBox(width: Space.sm),
-              Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+              if (illustration != null) ...[
+                Center(
+                  child: Image.asset(
+                    Illustrations.forBrightness(context, illustration!),
+                    height: 112,
+                    fit: BoxFit.contain,
+                    excludeFromSemantics: true,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
+                ),
+                const SizedBox(height: Space.md),
+              ],
+              Row(
+                children: [
+                  Icon(icon, size: 22),
+                  const SizedBox(width: Space.sm),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(color: fg),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Space.sm),
+              Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(color: fg),
+              ),
+              if (actions.isNotEmpty) ...[
+                const SizedBox(height: Space.md),
+                Wrap(
+                  spacing: Space.sm,
+                  runSpacing: Space.sm,
+                  children: actions,
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: Space.sm),
-          Text(message, style: theme.textTheme.bodyMedium),
-          if (actions.isNotEmpty) ...[
-            const SizedBox(height: Space.md),
-            Wrap(spacing: Space.sm, runSpacing: Space.sm, children: actions),
-          ],
-        ],
+        ),
       ),
     );
   }

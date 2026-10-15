@@ -9,6 +9,7 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/theme/tokens.dart';
 import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/common.dart';
+import '../../shared/widgets/guide_description.dart';
 import '../collection/cover_picker.dart';
 
 /// A species' personal discovery history.
@@ -65,6 +66,8 @@ class SpeciesHistoryScreen extends ConsumerWidget {
                     tag: 'collection-${entry.speciesId}',
                     child: BirdImage(
                       name: entry.commonName,
+                      scientificName: entry.scientificName,
+                      showCredit: entry.coverPhotoPath == null,
                       coverPhotoPath: entry.coverPhotoPath,
                       referenceImage: entry.referenceImage,
                     ),
@@ -104,13 +107,11 @@ class SpeciesHistoryScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    if (entry.description != null) ...[
-                      const SizedBox(height: Space.lg),
-                      Text(
-                        entry.description!,
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                    ],
+                    const SizedBox(height: Space.lg),
+                    GuideDescription(
+                      scientificName: entry.scientificName,
+                      fallback: entry.description,
+                    ),
                     const SectionHeader('Encounters'),
                   ],
                 ),

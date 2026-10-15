@@ -91,3 +91,48 @@ class SightingPhotos extends Table {
   TextColumn get localFilePath => text()();
   DateTimeColumn get createdAt => dateTime()();
 }
+
+/// Cached Wikipedia intro text per species and language (CC BY-SA 4.0).
+/// Filled on demand when a species is opened, or by an Encyclopedia pack.
+@DataClassName('GuideDescriptionRow')
+class GuideDescriptions extends Table {
+  TextColumn get scientificName => text()();
+
+  /// 'en' or 'ru'.
+  TextColumn get lang => text()();
+  TextColumn get body => text()();
+  TextColumn get articleTitle => text()();
+  DateTimeColumn get fetchedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {scientificName, lang};
+}
+
+/// A downloaded Encyclopedia area chosen by the user.
+@DataClassName('EncyclopediaPackRow')
+class EncyclopediaPacks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get radiusKm => real()();
+
+  /// Comma-separated language codes, e.g. "en,ru".
+  TextColumn get languages => text()();
+  BoolColumn get withPhotos => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+@DataClassName('EncyclopediaPackSpeciesRow')
+class EncyclopediaPackSpecies extends Table {
+  IntColumn get packId => integer().references(
+    EncyclopediaPacks,
+    #id,
+    onDelete: KeyAction.cascade,
+  )();
+  TextColumn get scientificName => text()();
+  TextColumn get commonName => text()();
+
+  @override
+  Set<Column> get primaryKey => {packId, scientificName};
+}

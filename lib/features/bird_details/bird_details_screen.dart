@@ -12,6 +12,7 @@ import '../../shared/theme/tokens.dart';
 import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/clip_player.dart';
 import '../../shared/widgets/common.dart';
+import '../../shared/widgets/guide_description.dart';
 import '../scanner/scanner_controller.dart';
 
 /// Details for a species heard in the current session, with Take Photo and
@@ -27,7 +28,7 @@ class BirdDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
-  bool _attachLocation = false;
+  bool _attachLocation = true;
   bool _saving = false;
 
   ScannerController get _scanner =>
@@ -102,8 +103,11 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
 
     final theme = Theme.of(context);
     final species = group.species;
-    final description =
-        species.description ?? fieldNoteFor(species.scientificName);
+    final name = speciesDisplayName(
+      ref,
+      species.scientificName,
+      species.commonName,
+    );
     final when = DateFormat.yMMMd().add_Hm().format(group.firstHeard);
 
     return Scaffold(
@@ -119,7 +123,11 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
               stretchModes: const [StretchMode.zoomBackground],
               background: Hero(
                 tag: 'bird-${species.scientificName}',
-                child: BirdImage(name: species.commonName),
+                child: BirdImage(
+                  name: name,
+                  scientificName: species.scientificName,
+                  showCredit: true,
+                ),
               ),
             ),
           ),
@@ -131,7 +139,9 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
                   const DemoBanner(),
                   const SizedBox(height: Space.md),
                 ],
-                Text(species.commonName, style: theme.textTheme.headlineMedium),
+                Text(name, style: theme.textTheme.headlineMedium),
+                if (name != species.commonName)
+                  Text(species.commonName, style: theme.textTheme.titleSmall),
                 const SizedBox(height: 2),
                 Text(
                   species.scientificName,
@@ -171,14 +181,11 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
                   ),
                 ],
                 const SizedBox(height: Space.lg),
-                Text(
-                  description ??
-                      'No field-guide description is available offline for '
-                          'this species yet.',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    height: 1.5,
-                    color: description == null ? context.nature.inkMuted : null,
-                  ),
+                GuideDescription(
+                  scientificName: species.scientificName,
+                  fallback:
+                      species.description ??
+                      fieldNoteFor(species.scientificName),
                 ),
                 const SizedBox(height: Space.lg),
                 if (group.hasAudio)
