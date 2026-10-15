@@ -205,6 +205,22 @@ class GuideRepository {
     return id;
   });
 
+  /// The species saved with pack [id], A–Z by common name.
+  Future<List<EncyclopediaSpecies>> packSpecies(int id) async {
+    final rows =
+        await (_db.select(_db.encyclopediaPackSpecies)
+              ..where((s) => s.packId.equals(id))
+              ..orderBy([(s) => OrderingTerm.asc(s.commonName)]))
+            .get();
+    return [
+      for (final r in rows)
+        EncyclopediaSpecies(
+          scientificName: r.scientificName,
+          commonName: r.commonName,
+        ),
+    ];
+  }
+
   Future<void> deletePack(int id) =>
       (_db.delete(_db.encyclopediaPacks)..where((p) => p.id.equals(id))).go();
 

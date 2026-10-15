@@ -6,6 +6,7 @@ import 'package:birdquest/data/database/app_database.dart';
 import 'package:birdquest/data/models.dart';
 import 'package:birdquest/data/repositories/sighting_repository.dart';
 import 'package:birdquest/features/encyclopedia/encyclopedia_download_controller.dart';
+import 'package:birdquest/features/encyclopedia/encyclopedia_screen.dart';
 import 'package:birdquest/features/map/sightings_map_screen.dart';
 import 'package:birdquest/services/bird_recognition/labels.dart';
 import 'package:birdquest/services/bird_recognition/model_manager.dart';
@@ -91,33 +92,36 @@ const _extracts = {
 };
 
 /// Fake Wikipedia (TextExtracts) and Commons (thumbnails). Records requests.
-MockClient _wikimedia(List<http.Request> log) => MockClient((req) async {
-  log.add(req);
-  if (req.url.host.endsWith('wikipedia.org')) {
-    final titles = req.url.queryParameters['titles']!.split('|');
-    return http.Response.bytes(
-      utf8.encode(
-        jsonEncode({
-          'query': {
-            'pages': [
-              for (final t in titles) {'title': t, 'extract': _extracts[t]},
-            ],
-          },
-        }),
-      ),
-      200,
-      headers: {'content-type': 'application/json; charset=utf-8'},
-    );
-  }
-  if (req.url.host == 'commons.wikimedia.org') {
-    return http.Response.bytes(
-      List.filled(64, 1),
-      200,
-      headers: {'content-type': 'image/jpeg'},
-    );
-  }
-  return http.Response('', 404);
-});
+/// Commons answers HTTP 503 while [commonsDown] returns true.
+MockClient _wikimedia(List<http.Request> log, {bool Function()? commonsDown}) =>
+    MockClient((req) async {
+      log.add(req);
+      if (req.url.host.endsWith('wikipedia.org')) {
+        final titles = req.url.queryParameters['titles']!.split('|');
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode({
+              'query': {
+                'pages': [
+                  for (final t in titles) {'title': t, 'extract': _extracts[t]},
+                ],
+              },
+            }),
+          ),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }
+      if (req.url.host == 'commons.wikimedia.org') {
+        if (commonsDown?.call() ?? false) return http.Response('', 503);
+        return http.Response.bytes(
+          List.filled(64, 1),
+          200,
+          headers: {'content-type': 'image/jpeg'},
+        );
+      }
+      return http.Response('', 404);
+    });
 
 void main() {
   late AppDatabase db;
@@ -125,6 +129,7 @@ void main() {
   late AppPaths paths;
   late SharedPreferences prefs;
   late List<http.Request> requests;
+  late bool commonsDown;
 
   // main() does this in the app.
   setUpAll(initializeDateFormatting);
@@ -134,6 +139,7 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     db = memoryDatabase();
     requests = [];
+    commonsDown = false;
     root = Directory.systemTemp.createTempSync('birdquest_flows_');
     paths = AppPaths(
       mediaRoot: Directory('${root.path}/media')..createSync(),
@@ -162,7 +168,7 @@ void main() {
       (ref) => ReferencePhotoService(
         paths.speciesPhotosDir,
         userAgent: userAgent,
-        client: _wikimedia(requests),
+        client: _wikimedia(requests, commonsDown: () => commonsDown),
       ),
     ),
     regionSpeciesServiceProvider.overrideWith((ref) => _FakeRegion()),
@@ -277,6 +283,124 @@ void main() {
           );
       expect(c.read(encyclopediaDownloadProvider), isA<JobFailed>());
       expect(requests, isEmpty);
+    });
+  });
+
+  group('Encyclopedia update', () {
+    const request = EncyclopediaRequest(
+      name: 'Home',
+      latitude: 52.52,
+      longitude: 13.40,
+      radiusKm: 25,
+      languages: [GuideLanguage.en, GuideLanguage.ru],
+      withPhotos: true,
+    );
+
+    test('counts failed photos, and Update retries them in place', () async {
+      final c = ProviderContainer(overrides: [...overrides()]);
+      addTearDown(c.dispose);
+      final job = c.read(encyclopediaDownloadProvider.notifier);
+      final repo = c.read(guideRepositoryProvider);
+      final photos = c.read(referencePhotoServiceProvider);
+      final blackbird = _guide['Turdus merula']!.photo!;
+
+      commonsDown = true;
+      await job.preview(request);
+      await job.download();
+      final done = c.read(encyclopediaDownloadProvider);
+      expect(done, isA<JobDone>(), reason: '$done');
+      expect((done as JobDone).failedPhotos, 1);
+      expect(done.updated, isFalse);
+      expect(await photos.cached(blackbird), isNull);
+      final pack = (await repo.watchPacks().first).single;
+      expect(done.packId, pack.id);
+
+      // Commons is back; the failed photo is retried this session.
+      commonsDown = false;
+      requests.clear();
+      await job.update(pack);
+      final updated = c.read(encyclopediaDownloadProvider);
+      expect(updated, isA<JobDone>(), reason: '$updated');
+      expect((updated as JobDone).failedPhotos, 0);
+      expect(updated.updated, isTrue);
+      expect(updated.packId, pack.id);
+      expect(updated.speciesCount, 2);
+      expect(await photos.cached(blackbird), isNotNull);
+
+      final packs = await repo.watchPacks().first;
+      expect(packs, hasLength(1), reason: 'no duplicate pack');
+      expect(packs.single.speciesCount, 2);
+      expect(packs.single.languages, [GuideLanguage.en, GuideLanguage.ru]);
+      expect(requests.map((r) => r.url.host), [
+        'commons.wikimedia.org',
+      ], reason: 'cached descriptions are not fetched again');
+
+      // Nothing left to fetch: a second update makes no requests at all.
+      requests.clear();
+      await job.update(packs.single);
+      expect(c.read(encyclopediaDownloadProvider), isA<JobDone>());
+      expect(requests, isEmpty);
+    });
+
+    testWidgets('Encyclopedia shows failed photos and retries with Update', (
+      tester,
+    ) async {
+      final c = ProviderContainer(overrides: [...overrides()]);
+      addTearDown(c.dispose);
+      commonsDown = true;
+      await tester.runAsync(() async {
+        final job = c.read(encyclopediaDownloadProvider.notifier);
+        await job.preview(request);
+        await job.download();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: c,
+          child: MaterialApp(
+            theme: AppTheme.light(),
+            home: const EncyclopediaScreen(),
+          ),
+        ),
+      );
+      Future<void> settle() async {
+        for (var i = 0; i < 10; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 50)),
+          );
+          await tester.pump();
+        }
+      }
+
+      await settle();
+      expect(
+        find.text('1 photo could not be downloaded — tap Update to retry'),
+        findsOneWidget,
+      );
+
+      commonsDown = false;
+      await tester.tap(find.widgetWithText(FilledButton, 'Update'));
+      await settle();
+      expect(find.textContaining('could not be downloaded'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Area updated'), findsOneWidget);
+      expect(
+        await tester.runAsync(
+          () => c
+              .read(referencePhotoServiceProvider)
+              .cached(_guide['Turdus merula']!.photo!),
+        ),
+        isNotNull,
+      );
+
+      // The same action is in each area's menu.
+      await tester.tap(find.byTooltip('Area actions'));
+      await tester.pumpAndSettle();
+      expect(find.text('Update'), findsOneWidget);
+      expect(find.text('Delete area'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 5));
     });
   });
 

@@ -54,21 +54,41 @@ class JobPreview extends EncyclopediaJob {
 }
 
 class JobDownloading extends EncyclopediaJob {
-  const JobDownloading(this.stage, this.done, this.total);
+  const JobDownloading(this.stage, this.done, this.total, {this.packId});
   final String stage;
   final int done;
   final int total;
+
+  /// The saved area being updated; null for a new download.
+  final int? packId;
   double get progress => total == 0 ? 0 : done / total;
 }
 
 class JobDone extends EncyclopediaJob {
-  const JobDone(this.speciesCount);
+  const JobDone(
+    this.speciesCount, {
+    required this.packId,
+    this.failedPhotos = 0,
+    this.updated = false,
+  });
   final int speciesCount;
+
+  /// The area that was downloaded or updated.
+  final int packId;
+
+  /// Photos that could not be downloaded (offline, HTTP error, …).
+  final int failedPhotos;
+
+  /// True when an existing area was updated rather than newly downloaded.
+  final bool updated;
 }
 
 class JobFailed extends EncyclopediaJob {
-  const JobFailed(this.message);
+  const JobFailed(this.message, {this.packId});
   final String message;
+
+  /// The saved area whose update failed; null for a new download.
+  final int? packId;
 }
 
 /// Finds the birds of an area and downloads their descriptions (chosen
@@ -126,12 +146,57 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
   Future<void> download() async {
     final preview = state;
     if (preview is! JobPreview) return;
-    final request = preview.request;
-    final species = preview.species;
+    await _run(preview.request, [
+      for (final s in preview.species)
+        EncyclopediaSpecies(
+          scientificName: s.scientificName,
+          commonName: s.commonName,
+        ),
+    ]);
+  }
+
+  /// Re-runs the download of a saved area in place: same species, languages
+  /// and photo choice. Cached descriptions and photos are skipped, and photos
+  /// that failed earlier are tried again.
+  Future<void> update(EncyclopediaPack pack) async {
+    if (isBusy) return;
+    if (ref.read(wikimediaUserAgentProvider) == null) {
+      state = JobFailed(
+        'Online species info is not configured in this build (missing '
+        'Wikimedia contact in AppConfig).',
+        packId: pack.id,
+      );
+      return;
+    }
+    final species = await ref
+        .read(guideRepositoryProvider)
+        .packSpecies(pack.id);
+    await _run(
+      EncyclopediaRequest(
+        name: pack.name,
+        latitude: pack.latitude,
+        longitude: pack.longitude,
+        radiusKm: pack.radiusKm,
+        languages: pack.languages,
+        withPhotos: pack.withPhotos,
+      ),
+      species,
+      packId: pack.id,
+    );
+  }
+
+  /// Downloads descriptions and photos for [species]; saves a new pack unless
+  /// [packId] names an existing one being updated.
+  Future<void> _run(
+    EncyclopediaRequest request,
+    List<EncyclopediaSpecies> species, {
+    int? packId,
+  }) async {
     _cancelled = false;
     final guide = await ref.read(speciesGuideProvider.future);
     final repo = ref.read(guideRepositoryProvider);
     final photos = ref.read(referencePhotoServiceProvider);
+    var failedPhotos = 0;
     try {
       for (final lang in request.languages) {
         final items = [
@@ -141,18 +206,15 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
               (scientificName: s.scientificName, title: title),
         ];
         final label = lang == GuideLanguage.ru ? 'Русский' : 'English';
-        state = JobDownloading('Descriptions · $label', 0, items.length);
+        final stage = 'Descriptions · $label';
+        state = JobDownloading(stage, 0, items.length, packId: packId);
         await repo.downloadDescriptions(
           items,
           lang,
           isCancelled: () => _cancelled,
           onProgress: (done) {
             if (!_cancelled) {
-              state = JobDownloading(
-                'Descriptions · $label',
-                done,
-                items.length,
-              );
+              state = JobDownloading(stage, done, items.length, packId: packId);
             }
           },
         );
@@ -164,15 +226,22 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
           for (final s in species) ?guide[s.scientificName]?.photo,
         ];
         var done = 0;
-        state = JobDownloading('Photos', 0, withPhoto.length);
+        state = JobDownloading('Photos', 0, withPhoto.length, packId: packId);
+        // An explicit download is worth retrying photos that failed earlier.
+        photos.forgetFailures();
         // A few parallel downloads; each photo is fetched at most once.
         final queue = [...withPhoto];
         Future<void> worker() async {
           while (queue.isNotEmpty && !_cancelled) {
-            await photos.get(queue.removeLast());
+            if (await photos.get(queue.removeLast()) == null) failedPhotos++;
             done++;
             if (!_cancelled) {
-              state = JobDownloading('Photos', done, withPhoto.length);
+              state = JobDownloading(
+                'Photos',
+                done,
+                withPhoto.length,
+                packId: packId,
+              );
             }
           }
         }
@@ -182,31 +251,39 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
         ref.invalidate(referencePhotoProvider);
       }
 
-      await repo.createPack(
-        name: request.name,
-        latitude: request.latitude,
-        longitude: request.longitude,
-        radiusKm: request.radiusKm,
-        languages: request.languages,
-        withPhotos: request.withPhotos,
-        species: [
-          for (final s in species)
-            EncyclopediaSpecies(
-              scientificName: s.scientificName,
-              commonName: s.commonName,
-            ),
-        ],
-      );
+      final id =
+          packId ??
+          await repo.createPack(
+            name: request.name,
+            latitude: request.latitude,
+            longitude: request.longitude,
+            radiusKm: request.radiusKm,
+            languages: request.languages,
+            withPhotos: request.withPhotos,
+            species: species,
+          );
       ref.invalidate(descriptionProvider);
-      state = JobDone(species.length);
+      state = JobDone(
+        species.length,
+        packId: id,
+        failedPhotos: failedPhotos,
+        updated: packId != null,
+      );
     } catch (e) {
       state = JobFailed(
-        'Download stopped: $e. Already downloaded items are kept; try '
-        'again to continue.',
+        'Download stopped: $e. Already downloaded items are kept; '
+        '${packId == null ? 'try again' : 'tap Update'} to continue.',
+        packId: packId,
       );
     }
   }
 }
+
+/// "12 photos could not be downloaded — tap Update to retry".
+String failedPhotosText(int count, {required bool ru}) => ru
+    ? '$count фото не удалось скачать — нажмите «Обновить», чтобы повторить'
+    : '$count ${count == 1 ? 'photo' : 'photos'} could not be downloaded — '
+          'tap Update to retry';
 
 final regionSpeciesServiceProvider = Provider<RegionSpeciesService>(
   (ref) => RegionSpeciesService(ref.read(modelManagerProvider)),

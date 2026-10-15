@@ -23,8 +23,12 @@ class ReferencePhotoService {
   final http.Client _client;
   final _inFlight = <String, Future<File?>>{};
 
-  /// Files that failed this session; not retried until the app restarts.
+  /// Files that failed this session; not retried until the app restarts or
+  /// [forgetFailures] is called.
   final _failed = <String>{};
+
+  /// Lets photos that failed earlier this session be downloaded again.
+  void forgetFailures() => _failed.clear();
 
   File _cacheFile(GuidePhoto photo) {
     final key = sha1.convert(photo.fileName.codeUnits).toString();

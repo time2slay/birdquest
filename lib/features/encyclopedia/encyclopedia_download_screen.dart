@@ -87,9 +87,13 @@ class _EncyclopediaDownloadScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              ru
-                  ? 'Скачано: ${next.speciesCount} видов'
-                  : 'Downloaded ${next.speciesCount} species',
+              [
+                ru
+                    ? 'Скачано: ${next.speciesCount} видов'
+                    : 'Downloaded ${next.speciesCount} species',
+                if (next.failedPhotos > 0)
+                  failedPhotosText(next.failedPhotos, ru: ru),
+              ].join('. '),
             ),
           ),
         );

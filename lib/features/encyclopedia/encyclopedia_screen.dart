@@ -32,6 +32,18 @@ class _EncyclopediaScreenState extends ConsumerState<EncyclopediaScreen> {
     final lang = ref.watch(guideLanguageProvider);
     final ru = lang == GuideLanguage.ru;
 
+    ref.listen(encyclopediaDownloadProvider, (_, next) {
+      if (next is JobDone &&
+          next.updated &&
+          next.failedPhotos == 0 &&
+          context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ru ? 'Область обновлена' : 'Area updated')),
+        );
+        ref.read(encyclopediaDownloadProvider.notifier).reset();
+      }
+    });
+
     final q = _query.trim().toLowerCase();
     final filtered = q.isEmpty
         ? species
@@ -94,8 +106,9 @@ class _EncyclopediaScreenState extends ConsumerState<EncyclopediaScreen> {
                   ),
                   sliver: SliverList.list(
                     children: [
+                      _JobStatus(packs: packs, ru: ru),
                       SizedBox(
-                        height: 92,
+                        height: 96,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: packs.length,
@@ -149,6 +162,8 @@ class _PackCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final ru = ref.watch(guideLanguageProvider) == GuideLanguage.ru;
+    final job = ref.watch(encyclopediaDownloadProvider);
+    final busy = job is JobFindingSpecies || job is JobDownloading;
     return Container(
       width: 220,
       padding: const EdgeInsets.all(Space.md),
@@ -175,6 +190,8 @@ class _PackCard extends ConsumerWidget {
                   '${pack.speciesCount} ${ru ? 'видов' : 'species'} · '
                   '${pack.languages.map((l) => l.name.toUpperCase()).join('+')}'
                   ' · ${pack.radiusKm.round()} km',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white70,
                   ),
@@ -182,40 +199,147 @@ class _PackCard extends ConsumerWidget {
               ],
             ),
           ),
-          IconButton(
-            tooltip: ru ? 'Удалить' : 'Delete area',
-            color: Colors.white70,
-            icon: const Icon(Icons.delete_outline_rounded),
-            onPressed: () async {
-              final ok = await showDialog<bool>(
-                context: context,
-                builder: (c) => AlertDialog(
-                  title: Text(ru ? 'Удалить область?' : 'Delete this area?'),
-                  content: Text(
-                    ru
-                        ? 'Виды из других скачанных областей останутся.'
-                        : 'Species that are also in other downloaded areas '
-                              'stay available.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(c, false),
-                      child: Text(ru ? 'Отмена' : 'Cancel'),
-                    ),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(c, true),
-                      child: Text(ru ? 'Удалить' : 'Delete'),
-                    ),
-                  ],
-                ),
-              );
-              if (ok == true) {
-                await ref.read(guideRepositoryProvider).deletePack(pack.id);
-              }
+          PopupMenuButton<_PackAction>(
+            tooltip: ru ? 'Действия' : 'Area actions',
+            iconColor: Colors.white70,
+            onSelected: (action) => switch (action) {
+              _PackAction.update =>
+                ref.read(encyclopediaDownloadProvider.notifier).update(pack),
+              _PackAction.delete => _delete(context, ref, ru),
             },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: _PackAction.update,
+                enabled: !busy,
+                child: ListTile(
+                  leading: const Icon(Icons.sync_rounded),
+                  title: Text(ru ? 'Обновить' : 'Update'),
+                  subtitle: Text(
+                    ru ? 'Докачать недостающее' : 'Download what is missing',
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                value: _PackAction.delete,
+                enabled: !busy,
+                child: ListTile(
+                  leading: const Icon(Icons.delete_outline_rounded),
+                  title: Text(ru ? 'Удалить' : 'Delete area'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _delete(BuildContext context, WidgetRef ref, bool ru) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(ru ? 'Удалить область?' : 'Delete this area?'),
+        content: Text(
+          ru
+              ? 'Виды из других скачанных областей останутся.'
+              : 'Species that are also in other downloaded areas '
+                    'stay available.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: Text(ru ? 'Отмена' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: Text(ru ? 'Удалить' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(guideRepositoryProvider).deletePack(pack.id);
+    }
+  }
+}
+
+enum _PackAction { update, delete }
+
+/// Progress of an area update, and what is left to retry after a download.
+class _JobStatus extends ConsumerWidget {
+  const _JobStatus({required this.packs, required this.ru});
+  final List<EncyclopediaPack> packs;
+  final bool ru;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final job = ref.watch(encyclopediaDownloadProvider);
+    final controller = ref.read(encyclopediaDownloadProvider.notifier);
+    EncyclopediaPack? packOf(int? id) =>
+        packs.where((p) => p.id == id).firstOrNull;
+
+    Widget actions(EncyclopediaPack? pack) => Wrap(
+      spacing: Space.sm,
+      children: [
+        if (pack != null)
+          FilledButton.icon(
+            onPressed: () => controller.update(pack),
+            icon: const Icon(Icons.sync_rounded),
+            label: Text(ru ? 'Обновить' : 'Update'),
+          ),
+        TextButton(
+          onPressed: controller.reset,
+          child: Text(ru ? 'Скрыть' : 'Dismiss'),
+        ),
+      ],
+    );
+
+    final Widget? card = switch (job) {
+      JobDownloading(
+        :final packId?,
+        :final stage,
+        :final done,
+        :final total,
+        :final progress,
+      ) =>
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              '${ru ? 'Обновление' : 'Updating'} '
+              '${packOf(packId)?.name ?? ''} · $stage · $done / $total',
+            ),
+            const SizedBox(height: Space.sm),
+            LinearProgressIndicator(value: progress),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: controller.cancel,
+                child: Text(ru ? 'Отмена' : 'Cancel'),
+              ),
+            ),
+          ],
+        ),
+      JobDone(:final packId, :final failedPhotos) when failedPhotos > 0 =>
+        NoticeCard(
+          icon: Icons.image_not_supported_outlined,
+          title: packOf(packId)?.name ?? (ru ? 'Область' : 'Area'),
+          message: failedPhotosText(failedPhotos, ru: ru),
+          actions: [actions(packOf(packId))],
+        ),
+      JobFailed(:final packId?, :final message) => NoticeCard(
+        icon: Icons.error_outline_rounded,
+        tone: NoticeTone.error,
+        title: ru ? 'Не удалось обновить' : 'Update failed',
+        message: message,
+        actions: [actions(packOf(packId))],
+      ),
+      _ => null,
+    };
+    if (card == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.md),
+      child: card,
     );
   }
 }

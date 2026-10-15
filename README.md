@@ -40,7 +40,7 @@ On first launch, tap **Download (81 MB)** to install the models, or use **Try de
 ## Tests
 
 ```bash
-D:/flutter/bin/flutter test                     # 68 unit and widget tests
+D:/flutter/bin/flutter test                     # 70 unit and widget tests
 ```
 
 `integration_test/birdnet_inference_test.dart` runs the real model on a device. Before running it, push a 32 kHz mono PCM16 recording, as described in the file header.
