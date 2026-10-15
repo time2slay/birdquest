@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 /// Raw design tokens for BirdQuest.
 ///
-/// Every color the UI uses comes from a [BirdQuestPalette]. Only the light
-/// palette ships today; a dark palette only needs a second instance.
+/// Every color the UI uses comes from a [BirdQuestPalette]: a warm
+/// field-guide [light] palette and a moonlit-forest [dark] one.
 @immutable
 class BirdQuestPalette {
   const BirdQuestPalette({
@@ -24,6 +24,10 @@ class BirdQuestPalette {
     required this.inkMuted,
     required this.outline,
     required this.error,
+    required this.onMossContainer,
+    required this.onClayContainer,
+    required this.onOchreContainer,
+    required this.onAccent,
   });
 
   final Brightness brightness;
@@ -44,6 +48,12 @@ class BirdQuestPalette {
   final Color outline;
   final Color error;
 
+  /// Text/icon colors on the tinted containers and on accent fills.
+  final Color onMossContainer;
+  final Color onClayContainer;
+  final Color onOchreContainer;
+  final Color onAccent;
+
   static const light = BirdQuestPalette(
     brightness: Brightness.light,
     forest: Color(0xFF2F5D3A),
@@ -62,6 +72,35 @@ class BirdQuestPalette {
     inkMuted: Color(0xFF5E6A60),
     outline: Color(0xFFD5CDBB),
     error: Color(0xFFB3261E),
+    onMossContainer: Color(0xFF244A2D),
+    onClayContainer: Color(0xFF7A3A18),
+    onOchreContainer: Color(0xFF6B4E0F),
+    onAccent: Color(0xFFFFFFFF),
+  );
+
+  /// Moonlit forest: deep green-black canvas, soft mint primary.
+  static const dark = BirdQuestPalette(
+    brightness: Brightness.dark,
+    forest: Color(0xFF9CCB9F),
+    forestDeep: Color(0xFFCDE8CF),
+    onForest: Color(0xFF0E3018),
+    moss: Color(0xFF8DB573),
+    mossContainer: Color(0xFF263A2B),
+    clay: Color(0xFFE0A27F),
+    clayContainer: Color(0xFF472C1F),
+    ochre: Color(0xFFE0B65A),
+    ochreContainer: Color(0xFF423719),
+    canvas: Color(0xFF121814),
+    surface: Color(0xFF1A221D),
+    surfaceMuted: Color(0xFF243029),
+    ink: Color(0xFFE8EDE6),
+    inkMuted: Color(0xFFA3B0A6),
+    outline: Color(0xFF34443A),
+    error: Color(0xFFFFB4AB),
+    onMossContainer: Color(0xFFCDE8CF),
+    onClayContainer: Color(0xFFF6CDB6),
+    onOchreContainer: Color(0xFFF3DDA6),
+    onAccent: Color(0xFF1A221D),
   );
 }
 

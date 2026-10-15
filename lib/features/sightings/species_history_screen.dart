@@ -51,7 +51,7 @@ class SpeciesHistoryScreen extends ConsumerWidget {
                 expandedHeight: 300,
                 pinned: true,
                 stretch: true,
-                backgroundColor: theme.colorScheme.primary,
+                backgroundColor: const Color(0xFF2F5D3A),
                 foregroundColor: Colors.white,
                 actions: [
                   IconButton(

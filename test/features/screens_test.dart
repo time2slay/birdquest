@@ -8,6 +8,7 @@ import 'package:birdquest/features/collection/collection_screen.dart';
 import 'package:birdquest/features/scanner/scanner_screen.dart';
 import 'package:birdquest/services/bird_recognition/model_manager.dart';
 import 'package:birdquest/shared/theme/app_theme.dart';
+import 'package:birdquest/shared/widgets/theme_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -113,7 +114,11 @@ void main() {
     expect(find.text('One-time setup: bird sound model'), findsOneWidget);
     expect(find.textContaining('DEMO MODE'), findsNothing);
 
+    await tester.ensureVisible(find.text('Try demo mode'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Try demo mode'));
+    await tester.pump();
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
     await tester.pump();
     await tester.pump();
     expect(find.textContaining('DEMO MODE'), findsOneWidget);
@@ -121,6 +126,74 @@ void main() {
     expect(find.text('No birds heard yet'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     // Let drift cancel its stream-query timers.
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets(
+    'theme follows the phone by default; toggle cycles and persists',
+    (tester) async {
+      late WidgetRef capturedRef;
+      await tester.pumpWidget(
+        app(
+          Consumer(
+            builder: (context, ref, _) {
+              capturedRef = ref;
+              return const Scaffold(
+                appBar: PreferredSize(
+                  preferredSize: Size.fromHeight(56),
+                  child: Row(children: [ThemeToggleButton()]),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      expect(capturedRef.read(themeModeProvider), ThemeMode.system);
+      expect(find.byIcon(Icons.brightness_auto_rounded), findsOneWidget);
+
+      await tester.tap(find.byType(ThemeToggleButton));
+      await tester.pumpAndSettle();
+      expect(capturedRef.read(themeModeProvider), ThemeMode.light);
+      expect(prefs.getString('theme_mode'), 'light');
+
+      await tester.tap(find.byType(ThemeToggleButton));
+      await tester.pumpAndSettle();
+      expect(capturedRef.read(themeModeProvider), ThemeMode.dark);
+
+      await tester.tap(find.byType(ThemeToggleButton));
+      await tester.pumpAndSettle();
+      expect(capturedRef.read(themeModeProvider), ThemeMode.system);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
+  testWidgets('dark theme swaps in the night illustration', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appPathsProvider.overrideWithValue(paths),
+          databaseProvider.overrideWithValue(db),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: ThemeMode.dark,
+          home: const CollectionScreen(),
+        ),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    final image = tester.widget<Image>(find.byType(Image).first);
+    expect(
+      (image.image as AssetImage).assetName,
+      'assets/illustrations/empty_collection_dark.png',
+    );
+    await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
 }

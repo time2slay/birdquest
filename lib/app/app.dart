@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../shared/theme/app_theme.dart';
+import 'providers.dart';
 import 'router.dart';
 
-class BirdQuestApp extends StatefulWidget {
+class BirdQuestApp extends ConsumerStatefulWidget {
   const BirdQuestApp({super.key});
 
   @override
-  State<BirdQuestApp> createState() => _BirdQuestAppState();
+  ConsumerState<BirdQuestApp> createState() => _BirdQuestAppState();
 }
 
-class _BirdQuestAppState extends State<BirdQuestApp> {
+class _BirdQuestAppState extends ConsumerState<BirdQuestApp> {
   late final GoRouter _router = buildRouter();
 
   @override
@@ -26,8 +28,8 @@ class _BirdQuestAppState extends State<BirdQuestApp> {
       title: 'BirdQuest',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      // Dark mode: add BirdQuestPalette.dark and AppTheme.dark().
-      themeMode: ThemeMode.light,
+      darkTheme: AppTheme.dark(),
+      themeMode: ref.watch(themeModeProvider),
       routerConfig: _router,
     );
   }

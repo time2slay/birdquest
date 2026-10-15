@@ -113,7 +113,7 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
             expandedHeight: 340,
             pinned: true,
             stretch: true,
-            backgroundColor: theme.colorScheme.primary,
+            backgroundColor: const Color(0xFF2F5D3A),
             foregroundColor: Colors.white,
             flexibleSpace: FlexibleSpaceBar(
               stretchModes: const [StretchMode.zoomBackground],

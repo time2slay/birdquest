@@ -14,6 +14,9 @@ class NatureColors extends ThemeExtension<NatureColors> {
     required this.ochre,
     required this.ochreContainer,
     required this.inkMuted,
+    required this.onMossContainer,
+    required this.onClayContainer,
+    required this.onOchreContainer,
   });
 
   factory NatureColors.fromPalette(BirdQuestPalette p) => NatureColors(
@@ -25,6 +28,9 @@ class NatureColors extends ThemeExtension<NatureColors> {
     ochre: p.ochre,
     ochreContainer: p.ochreContainer,
     inkMuted: p.inkMuted,
+    onMossContainer: p.onMossContainer,
+    onClayContainer: p.onClayContainer,
+    onOchreContainer: p.onOchreContainer,
   );
 
   final Color canvas;
@@ -35,6 +41,9 @@ class NatureColors extends ThemeExtension<NatureColors> {
   final Color ochre;
   final Color ochreContainer;
   final Color inkMuted;
+  final Color onMossContainer;
+  final Color onClayContainer;
+  final Color onOchreContainer;
 
   @override
   NatureColors copyWith() => this;
@@ -51,6 +60,13 @@ class NatureColors extends ThemeExtension<NatureColors> {
       ochre: Color.lerp(ochre, other.ochre, t)!,
       ochreContainer: Color.lerp(ochreContainer, other.ochreContainer, t)!,
       inkMuted: Color.lerp(inkMuted, other.inkMuted, t)!,
+      onMossContainer: Color.lerp(onMossContainer, other.onMossContainer, t)!,
+      onClayContainer: Color.lerp(onClayContainer, other.onClayContainer, t)!,
+      onOchreContainer: Color.lerp(
+        onOchreContainer,
+        other.onOchreContainer,
+        t,
+      )!,
     );
   }
 }
@@ -61,6 +77,7 @@ extension NatureColorsX on BuildContext {
 
 abstract final class AppTheme {
   static ThemeData light() => _build(BirdQuestPalette.light);
+  static ThemeData dark() => _build(BirdQuestPalette.dark);
 
   static ThemeData _build(BirdQuestPalette p) {
     final scheme = ColorScheme(
@@ -68,17 +85,17 @@ abstract final class AppTheme {
       primary: p.forest,
       onPrimary: p.onForest,
       primaryContainer: p.mossContainer,
-      onPrimaryContainer: p.forestDeep,
+      onPrimaryContainer: p.onMossContainer,
       secondary: p.clay,
-      onSecondary: Colors.white,
+      onSecondary: p.onAccent,
       secondaryContainer: p.clayContainer,
-      onSecondaryContainer: const Color(0xFF4A2511),
+      onSecondaryContainer: p.onClayContainer,
       tertiary: p.ochre,
-      onTertiary: Colors.white,
+      onTertiary: p.onAccent,
       tertiaryContainer: p.ochreContainer,
-      onTertiaryContainer: const Color(0xFF4A3608),
+      onTertiaryContainer: p.onOchreContainer,
       error: p.error,
-      onError: Colors.white,
+      onError: p.onAccent,
       surface: p.surface,
       onSurface: p.ink,
       onSurfaceVariant: p.inkMuted,
@@ -185,10 +202,22 @@ abstract final class AppTheme {
         elevation: 0,
         height: 72,
         labelTextStyle: WidgetStatePropertyAll(text.labelMedium),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? p.onMossContainer
+                : p.inkMuted,
+          ),
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: p.forestDeep,
+        backgroundColor: p.brightness == Brightness.light
+            ? p.forestDeep
+            : p.surfaceMuted,
+        contentTextStyle: text.bodyMedium?.copyWith(
+          color: p.brightness == Brightness.light ? Colors.white : p.ink,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Radii.sm),
         ),

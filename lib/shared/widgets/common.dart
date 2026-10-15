@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../theme/illustrations.dart';
 import '../theme/tokens.dart';
 
 /// Model score shown as a percentage with an uncertainty hint.
@@ -15,7 +16,7 @@ class ScoreChip extends StatelessWidget {
     final nature = context.nature;
     final uncertain = score < 0.5;
     final bg = uncertain ? nature.ochreContainer : nature.mossContainer;
-    final fg = uncertain ? const Color(0xFF6B4E0F) : const Color(0xFF244A2D);
+    final fg = uncertain ? nature.onOchreContainer : nature.onMossContainer;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: dense ? 8 : 10,
@@ -62,7 +63,7 @@ class DemoBadge extends StatelessWidget {
       child: Text(
         'DEMO',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: const Color(0xFF7A3A18),
+          color: context.nature.onClayContainer,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.8,
         ),
@@ -89,17 +90,17 @@ class DemoBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.science_outlined,
             size: 18,
-            color: Color(0xFF7A3A18),
+            color: context.nature.onClayContainer,
           ),
           const SizedBox(width: Space.sm),
           Expanded(
             child: Text(
               'DEMO MODE — simulated results, not real identifications.',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: const Color(0xFF7A3A18),
+                color: context.nature.onClayContainer,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -117,12 +118,16 @@ class EmptyState extends StatelessWidget {
     required this.title,
     required this.message,
     this.action,
+    this.illustration,
   });
 
   final IconData icon;
   final String title;
   final String message;
   final Widget? action;
+
+  /// Optional artwork asset shown instead of the icon badge.
+  final String? illustration;
 
   @override
   Widget build(BuildContext context) {
@@ -132,15 +137,26 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: context.nature.mossContainer,
-              shape: BoxShape.circle,
+          if (illustration != null)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 240, maxHeight: 200),
+              child: Image.asset(
+                Illustrations.forBrightness(context, illustration!),
+                fit: BoxFit.contain,
+                excludeFromSemantics: true,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
+            )
+          else
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: context.nature.mossContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 40, color: theme.colorScheme.primary),
             ),
-            child: Icon(icon, size: 40, color: theme.colorScheme.primary),
-          ),
           const SizedBox(height: Space.lg),
           Text(
             title,
@@ -171,6 +187,7 @@ class NoticeCard extends StatelessWidget {
     required this.message,
     this.actions = const [],
     this.tone = NoticeTone.warning,
+    this.illustration,
   });
 
   final IconData icon;
@@ -178,6 +195,9 @@ class NoticeCard extends StatelessWidget {
   final String message;
   final List<Widget> actions;
   final NoticeTone tone;
+
+  /// Optional artwork asset shown above the title.
+  final String? illustration;
 
   @override
   Widget build(BuildContext context) {
@@ -197,6 +217,18 @@ class NoticeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (illustration != null) ...[
+            Center(
+              child: Image.asset(
+                Illustrations.forBrightness(context, illustration!),
+                height: 112,
+                fit: BoxFit.contain,
+                excludeFromSemantics: true,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
+            ),
+            const SizedBox(height: Space.md),
+          ],
           Row(
             children: [
               Icon(icon, size: 22),
@@ -244,3 +276,26 @@ class SectionHeader extends StatelessWidget {
     );
   }
 }
+
+/// Forest-green gradient with a faint topographic texture, used for the
+/// app's hero cards.
+BoxDecoration forestCardDecoration({
+  required BorderRadius borderRadius,
+  List<Color> colors = const [
+    Color(0xFF1E3F27),
+    Color(0xFF2F5D3A),
+    Color(0xFF4F7A45),
+  ],
+}) => BoxDecoration(
+  borderRadius: borderRadius,
+  gradient: LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: colors,
+  ),
+  image: const DecorationImage(
+    image: AssetImage(Illustrations.topoTexture),
+    fit: BoxFit.cover,
+    opacity: 0.35,
+  ),
+);

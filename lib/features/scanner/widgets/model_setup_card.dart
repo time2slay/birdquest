@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../../../services/bird_recognition/model_manager.dart';
+import '../../../shared/theme/illustrations.dart';
 import '../../../shared/widgets/common.dart';
 
 /// First-run prompt to download the on-device recognition model.
@@ -73,6 +74,7 @@ class ModelSetupCard extends ConsumerWidget {
       ModelNotInstalled() => NoticeCard(
         icon: Icons.download_for_offline_outlined,
         tone: NoticeTone.info,
+        illustration: Illustrations.offlineModel,
         title: 'One-time setup: bird sound model',
         message:
             'BirdQuest recognizes birds entirely on your phone. Download the '

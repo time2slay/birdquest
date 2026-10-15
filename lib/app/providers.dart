@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart' show ThemeMode;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -73,6 +75,29 @@ class GeoFilterSetting extends Notifier<bool> {
 
 final geoFilterEnabledProvider = NotifierProvider<GeoFilterSetting, bool>(
   GeoFilterSetting.new,
+);
+
+/// Light, dark or follow the system. Persisted; defaults to system.
+class ThemeModeSetting extends Notifier<ThemeMode> {
+  static const _key = 'theme_mode';
+
+  @override
+  ThemeMode build() {
+    final saved = ref.watch(sharedPreferencesProvider).getString(_key);
+    return ThemeMode.values.firstWhere(
+      (m) => m.name == saved,
+      orElse: () => ThemeMode.system,
+    );
+  }
+
+  Future<void> set(ThemeMode mode) async {
+    state = mode;
+    await ref.read(sharedPreferencesProvider).setString(_key, mode.name);
+  }
+}
+
+final themeModeProvider = NotifierProvider<ThemeModeSetting, ThemeMode>(
+  ThemeModeSetting.new,
 );
 
 final databaseProvider = Provider<AppDatabase>((ref) {

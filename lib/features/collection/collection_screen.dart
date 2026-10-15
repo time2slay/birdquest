@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../data/models.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/theme/illustrations.dart';
 import '../../shared/theme/tokens.dart';
 import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/common.dart';
+import '../../shared/widgets/theme_toggle.dart';
 import 'cover_picker.dart';
 
 class CollectionScreen extends ConsumerWidget {
@@ -20,7 +22,10 @@ class CollectionScreen extends ConsumerWidget {
         ref.watch(collectionStatsProvider).value ?? CollectionStats.empty;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Bird Collection')),
+      appBar: AppBar(
+        title: const Text('My Bird Collection'),
+        actions: const [ThemeToggleButton()],
+      ),
       body: collection.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -46,6 +51,7 @@ class CollectionScreen extends ConsumerWidget {
                 hasScrollBody: false,
                 child: EmptyState(
                   icon: Icons.auto_stories_outlined,
+                  illustration: Illustrations.emptyCollection,
                   title: 'Your field journal is empty',
                   message:
                       'Birds appear here after you confirm an encounter. '
@@ -95,11 +101,9 @@ class _StatsHeader extends StatelessWidget {
         vertical: Space.lg,
         horizontal: Space.sm,
       ),
-      decoration: BoxDecoration(
+      decoration: forestCardDecoration(
         borderRadius: BorderRadius.circular(Radii.lg),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3F27), Color(0xFF2F5D3A)],
-        ),
+        colors: const [Color(0xFF1E3F27), Color(0xFF2F5D3A)],
       ),
       child: Row(
         children: [

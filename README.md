@@ -15,6 +15,8 @@ Flutter · Riverpod · Drift (SQLite) · ONNX Runtime · BirdNET+ V3.0 · Materi
 | Collection, stats, cover photo, history, encounter detail and delete | Working |
 | Demo mode | Simulated results, clearly labeled DEMO everywhere |
 | Location and season filter (BirdNET+ Geomodel V3.0.4) | **Working.** Verified on the phone: limits results to species plausible at your approximate location this week; toggle under ⋮ or About |
+| Day / Night theme | **Working.** Follows the phone by default; sun/moon button in the top bar cycles System → Day → Night (persisted) |
+| App icon, splash, empty-state art | Done: adaptive launcher icon, night-aware splash, and day/night illustration sets |
 | Licensed reference bird photos | **Not yet.** Labeled placeholder illustrations are used |
 
 ## Run
@@ -32,7 +34,7 @@ On first launch, tap **Download (81 MB)** to install the models, or use **Try de
 ## Tests
 
 ```bash
-D:/flutter/bin/flutter test                     # 39 unit and widget tests
+D:/flutter/bin/flutter test                     # 41 unit and widget tests
 ```
 
 `integration_test/birdnet_inference_test.dart` runs the real model on a device. Before running it, push a 32 kHz mono PCM16 recording, as described in the file header.
@@ -66,3 +68,4 @@ Photos and clips are stored under the app documents directory (`media/sightings/
 - **Pipeline design:** follows BirdNET Live (MIT).
 - **Do not** switch to BirdNET V2.4: its weights are CC BY-NC, which rules out commercial use, including ads.
 - **Reference photos:** Cornell / Macaulay species images are mostly NC or ©, so none are bundled.
+- **UI artwork:** the app icon, empty-state illustrations (day and night) and the topographic texture in `assets/` were generated for BirdQuest with Google Flow (Nano Banana 2.1). They are decorative and never depict a specific species.

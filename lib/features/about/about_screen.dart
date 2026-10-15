@@ -15,7 +15,7 @@ class AboutScreen extends ConsumerWidget {
     final manager = ref.read(modelManagerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('About & licenses')),
+      appBar: AppBar(title: const Text('Settings & about')),
       body: ListView(
         padding: const EdgeInsets.all(Space.lg),
         children: [
@@ -93,6 +93,31 @@ class AboutScreen extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: Space.xl),
+          Text('Appearance', style: theme.textTheme.titleLarge),
+          const SizedBox(height: Space.sm),
+          SegmentedButton<ThemeMode>(
+            segments: const [
+              ButtonSegment(
+                value: ThemeMode.system,
+                icon: Icon(Icons.brightness_auto_rounded),
+                label: Text('System'),
+              ),
+              ButtonSegment(
+                value: ThemeMode.light,
+                icon: Icon(Icons.light_mode_rounded),
+                label: Text('Day'),
+              ),
+              ButtonSegment(
+                value: ThemeMode.dark,
+                icon: Icon(Icons.dark_mode_rounded),
+                label: Text('Night'),
+              ),
+            ],
+            selected: {ref.watch(themeModeProvider)},
+            onSelectionChanged: (s) =>
+                ref.read(themeModeProvider.notifier).set(s.first),
           ),
           const SizedBox(height: Space.xl),
           Text('Privacy', style: theme.textTheme.titleLarge),

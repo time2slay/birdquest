@@ -8,9 +8,11 @@ import '../../app/providers.dart';
 import '../../services/bird_recognition/bird_recognition_service.dart';
 import '../../services/bird_recognition/model_manager.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/theme/illustrations.dart';
 import '../../shared/theme/tokens.dart';
 import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/common.dart';
+import '../../shared/widgets/theme_toggle.dart';
 import 'scanner_controller.dart';
 import 'widgets/level_waveform.dart';
 import 'widgets/listen_button.dart';
@@ -47,6 +49,7 @@ class ScannerScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          const ThemeToggleButton(),
           PopupMenuButton<String>(
             tooltip: 'More',
             onSelected: (v) {
@@ -81,7 +84,7 @@ class ScannerScreen extends ConsumerWidget {
               ),
               const PopupMenuItem(
                 value: 'about',
-                child: Text('About & licenses'),
+                child: Text('Settings & about'),
               ),
             ],
           ),
@@ -157,6 +160,7 @@ class ScannerScreen extends ConsumerWidget {
             SliverToBoxAdapter(
               child: EmptyState(
                 icon: Icons.forest_outlined,
+                illustration: Illustrations.listeningForest,
                 title: state.isListening
                     ? 'Listening for birds…'
                     : 'No birds heard yet',
@@ -220,13 +224,8 @@ class _ListeningHero extends ConsumerWidget {
         Space.lg,
         Space.lg,
       ),
-      decoration: BoxDecoration(
+      decoration: forestCardDecoration(
         borderRadius: BorderRadius.circular(Radii.xl),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1E3F27), Color(0xFF2F5D3A), Color(0xFF4F7A45)],
-        ),
       ),
       child: Column(
         children: [
