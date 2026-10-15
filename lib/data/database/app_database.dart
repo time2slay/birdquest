@@ -15,6 +15,7 @@ part 'app_database.g.dart';
     GuideDescriptions,
     EncyclopediaPacks,
     EncyclopediaPackSpecies,
+    QuestCompletions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -22,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'birdquest'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -36,6 +37,11 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(guideDescriptions);
         await m.createTable(encyclopediaPacks);
         await m.createTable(encyclopediaPackSpecies);
+      }
+      if (from < 3) {
+        // v3: species rarity per sighting and completed daily quests.
+        await m.addColumn(sightings, sightings.rarity);
+        await m.createTable(questCompletions);
       }
     },
     beforeOpen: (details) async {

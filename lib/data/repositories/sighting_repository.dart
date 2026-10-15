@@ -102,6 +102,7 @@ class SightingRepository {
               userNotes: Value(draft.notes),
               modelScore: Value(draft.modelScore),
               isDemo: Value(draft.isDemo),
+              rarity: Value(draft.rarity),
             ),
           );
     });
@@ -269,29 +270,34 @@ class SightingRepository {
   }
 
   /// Facts about every real (non-demo) sighting, for achievements.
-  Stream<List<SightingFact>> watchSightingFacts() {
-    final q = _db.select(_db.sightings).join([
-      innerJoin(_db.species, _db.species.id.equalsExp(_db.sightings.speciesId)),
-    ])..where(_db.sightings.isDemo.equals(false));
-    return q.watch().map(
-      (rows) => [
-        for (final r in rows)
-          () {
-            final s = r.readTable(_db.sightings);
-            final sp = r.readTable(_db.species);
-            return SightingFact(
-              speciesId: sp.id,
-              scientificName: sp.scientificName,
-              taxonOrder: sp.taxonOrder,
-              confirmedAt: s.confirmedAt,
-              sessionId: s.sessionId,
-              latitude: s.latitude,
-              longitude: s.longitude,
-            );
-          }(),
-      ],
-    );
-  }
+  Stream<List<SightingFact>> watchSightingFacts() => _db
+      .customSelect(
+        'SELECT s.id, s.species_id, sp.scientific_name, sp.taxon_order, '
+        's.confirmed_at, s.session_id, s.latitude, s.longitude, s.rarity, '
+        '(SELECT COUNT(*) FROM sighting_photos p WHERE p.sighting_id = s.id) '
+        'AS photos '
+        'FROM sightings s JOIN species sp ON sp.id = s.species_id '
+        'WHERE s.is_demo = 0 ORDER BY s.confirmed_at',
+        readsFrom: {_db.sightings, _db.species, _db.sightingPhotos},
+      )
+      .watch()
+      .map(
+        (rows) => [
+          for (final r in rows)
+            SightingFact(
+              sightingId: r.read<int>('id'),
+              speciesId: r.read<int>('species_id'),
+              scientificName: r.read<String>('scientific_name'),
+              taxonOrder: r.readNullable<String>('taxon_order'),
+              confirmedAt: r.read<DateTime>('confirmed_at'),
+              sessionId: r.readNullable<int>('session_id'),
+              latitude: r.readNullable<double>('latitude'),
+              longitude: r.readNullable<double>('longitude'),
+              rarity: r.readNullable<String>('rarity'),
+              photoCount: r.read<int>('photos'),
+            ),
+        ],
+      );
 
   /// Number of photos attached to real (non-demo) sightings.
   Stream<int> watchRealPhotoCount() => _db

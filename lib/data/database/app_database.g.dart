@@ -533,6 +533,15 @@ class $SightingsTable extends Sightings
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _rarityMeta = const VerificationMeta('rarity');
+  @override
+  late final GeneratedColumn<String> rarity = GeneratedColumn<String>(
+    'rarity',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -545,6 +554,7 @@ class $SightingsTable extends Sightings
     modelScore,
     audioClipPath,
     isDemo,
+    rarity,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -625,6 +635,12 @@ class $SightingsTable extends Sightings
         isDemo.isAcceptableOrUnknown(data['is_demo']!, _isDemoMeta),
       );
     }
+    if (data.containsKey('rarity')) {
+      context.handle(
+        _rarityMeta,
+        rarity.isAcceptableOrUnknown(data['rarity']!, _rarityMeta),
+      );
+    }
     return context;
   }
 
@@ -674,6 +690,10 @@ class $SightingsTable extends Sightings
         DriftSqlType.bool,
         data['${effectivePrefix}is_demo'],
       )!,
+      rarity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rarity'],
+      ),
     );
   }
 
@@ -698,6 +718,11 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
   /// Path (relative to the app media root) of the saved sound clip.
   final String? audioClipPath;
   final bool isDemo;
+
+  /// How rare the species is where it was found ('common', 'uncommon',
+  /// 'rare', 'legendary'), fixed when saved so XP never changes later.
+  /// Null when it could not be determined (no location or geo model).
+  final String? rarity;
   const SightingRow({
     required this.id,
     required this.speciesId,
@@ -709,6 +734,7 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
     this.modelScore,
     this.audioClipPath,
     required this.isDemo,
+    this.rarity,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -735,6 +761,9 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
       map['audio_clip_path'] = Variable<String>(audioClipPath);
     }
     map['is_demo'] = Variable<bool>(isDemo);
+    if (!nullToAbsent || rarity != null) {
+      map['rarity'] = Variable<String>(rarity);
+    }
     return map;
   }
 
@@ -762,6 +791,9 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
           ? const Value.absent()
           : Value(audioClipPath),
       isDemo: Value(isDemo),
+      rarity: rarity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rarity),
     );
   }
 
@@ -781,6 +813,7 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
       modelScore: serializer.fromJson<double?>(json['modelScore']),
       audioClipPath: serializer.fromJson<String?>(json['audioClipPath']),
       isDemo: serializer.fromJson<bool>(json['isDemo']),
+      rarity: serializer.fromJson<String?>(json['rarity']),
     );
   }
   @override
@@ -797,6 +830,7 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
       'modelScore': serializer.toJson<double?>(modelScore),
       'audioClipPath': serializer.toJson<String?>(audioClipPath),
       'isDemo': serializer.toJson<bool>(isDemo),
+      'rarity': serializer.toJson<String?>(rarity),
     };
   }
 
@@ -811,6 +845,7 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
     Value<double?> modelScore = const Value.absent(),
     Value<String?> audioClipPath = const Value.absent(),
     bool? isDemo,
+    Value<String?> rarity = const Value.absent(),
   }) => SightingRow(
     id: id ?? this.id,
     speciesId: speciesId ?? this.speciesId,
@@ -824,6 +859,7 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
         ? audioClipPath.value
         : this.audioClipPath,
     isDemo: isDemo ?? this.isDemo,
+    rarity: rarity.present ? rarity.value : this.rarity,
   );
   SightingRow copyWithCompanion(SightingsCompanion data) {
     return SightingRow(
@@ -843,6 +879,7 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
           ? data.audioClipPath.value
           : this.audioClipPath,
       isDemo: data.isDemo.present ? data.isDemo.value : this.isDemo,
+      rarity: data.rarity.present ? data.rarity.value : this.rarity,
     );
   }
 
@@ -858,7 +895,8 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
           ..write('userNotes: $userNotes, ')
           ..write('modelScore: $modelScore, ')
           ..write('audioClipPath: $audioClipPath, ')
-          ..write('isDemo: $isDemo')
+          ..write('isDemo: $isDemo, ')
+          ..write('rarity: $rarity')
           ..write(')'))
         .toString();
   }
@@ -875,6 +913,7 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
     modelScore,
     audioClipPath,
     isDemo,
+    rarity,
   );
   @override
   bool operator ==(Object other) =>
@@ -889,7 +928,8 @@ class SightingRow extends DataClass implements Insertable<SightingRow> {
           other.userNotes == this.userNotes &&
           other.modelScore == this.modelScore &&
           other.audioClipPath == this.audioClipPath &&
-          other.isDemo == this.isDemo);
+          other.isDemo == this.isDemo &&
+          other.rarity == this.rarity);
 }
 
 class SightingsCompanion extends UpdateCompanion<SightingRow> {
@@ -903,6 +943,7 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
   final Value<double?> modelScore;
   final Value<String?> audioClipPath;
   final Value<bool> isDemo;
+  final Value<String?> rarity;
   const SightingsCompanion({
     this.id = const Value.absent(),
     this.speciesId = const Value.absent(),
@@ -914,6 +955,7 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
     this.modelScore = const Value.absent(),
     this.audioClipPath = const Value.absent(),
     this.isDemo = const Value.absent(),
+    this.rarity = const Value.absent(),
   });
   SightingsCompanion.insert({
     this.id = const Value.absent(),
@@ -926,6 +968,7 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
     this.modelScore = const Value.absent(),
     this.audioClipPath = const Value.absent(),
     this.isDemo = const Value.absent(),
+    this.rarity = const Value.absent(),
   }) : speciesId = Value(speciesId),
        confirmedAt = Value(confirmedAt);
   static Insertable<SightingRow> custom({
@@ -939,6 +982,7 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
     Expression<double>? modelScore,
     Expression<String>? audioClipPath,
     Expression<bool>? isDemo,
+    Expression<String>? rarity,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -951,6 +995,7 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
       if (modelScore != null) 'model_score': modelScore,
       if (audioClipPath != null) 'audio_clip_path': audioClipPath,
       if (isDemo != null) 'is_demo': isDemo,
+      if (rarity != null) 'rarity': rarity,
     });
   }
 
@@ -965,6 +1010,7 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
     Value<double?>? modelScore,
     Value<String?>? audioClipPath,
     Value<bool>? isDemo,
+    Value<String?>? rarity,
   }) {
     return SightingsCompanion(
       id: id ?? this.id,
@@ -977,6 +1023,7 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
       modelScore: modelScore ?? this.modelScore,
       audioClipPath: audioClipPath ?? this.audioClipPath,
       isDemo: isDemo ?? this.isDemo,
+      rarity: rarity ?? this.rarity,
     );
   }
 
@@ -1013,6 +1060,9 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
     if (isDemo.present) {
       map['is_demo'] = Variable<bool>(isDemo.value);
     }
+    if (rarity.present) {
+      map['rarity'] = Variable<String>(rarity.value);
+    }
     return map;
   }
 
@@ -1028,7 +1078,8 @@ class SightingsCompanion extends UpdateCompanion<SightingRow> {
           ..write('userNotes: $userNotes, ')
           ..write('modelScore: $modelScore, ')
           ..write('audioClipPath: $audioClipPath, ')
-          ..write('isDemo: $isDemo')
+          ..write('isDemo: $isDemo, ')
+          ..write('rarity: $rarity')
           ..write(')'))
         .toString();
   }
@@ -3493,6 +3544,321 @@ class EncyclopediaPackSpeciesCompanion
   }
 }
 
+class $QuestCompletionsTable extends QuestCompletions
+    with TableInfo<$QuestCompletionsTable, QuestCompletionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $QuestCompletionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _questIdMeta = const VerificationMeta(
+    'questId',
+  );
+  @override
+  late final GeneratedColumn<String> questId = GeneratedColumn<String>(
+    'quest_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _xpMeta = const VerificationMeta('xp');
+  @override
+  late final GeneratedColumn<int> xp = GeneratedColumn<int>(
+    'xp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [day, questId, xp, completedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'quest_completions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<QuestCompletionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('quest_id')) {
+      context.handle(
+        _questIdMeta,
+        questId.isAcceptableOrUnknown(data['quest_id']!, _questIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_questIdMeta);
+    }
+    if (data.containsKey('xp')) {
+      context.handle(_xpMeta, xp.isAcceptableOrUnknown(data['xp']!, _xpMeta));
+    } else if (isInserting) {
+      context.missing(_xpMeta);
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_completedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {day, questId};
+  @override
+  QuestCompletionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return QuestCompletionRow(
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      questId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quest_id'],
+      )!,
+      xp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}xp'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $QuestCompletionsTable createAlias(String alias) {
+    return $QuestCompletionsTable(attachedDatabase, alias);
+  }
+}
+
+class QuestCompletionRow extends DataClass
+    implements Insertable<QuestCompletionRow> {
+  /// Local date, 'yyyy-mm-dd'.
+  final String day;
+  final String questId;
+  final int xp;
+  final DateTime completedAt;
+  const QuestCompletionRow({
+    required this.day,
+    required this.questId,
+    required this.xp,
+    required this.completedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['day'] = Variable<String>(day);
+    map['quest_id'] = Variable<String>(questId);
+    map['xp'] = Variable<int>(xp);
+    map['completed_at'] = Variable<DateTime>(completedAt);
+    return map;
+  }
+
+  QuestCompletionsCompanion toCompanion(bool nullToAbsent) {
+    return QuestCompletionsCompanion(
+      day: Value(day),
+      questId: Value(questId),
+      xp: Value(xp),
+      completedAt: Value(completedAt),
+    );
+  }
+
+  factory QuestCompletionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return QuestCompletionRow(
+      day: serializer.fromJson<String>(json['day']),
+      questId: serializer.fromJson<String>(json['questId']),
+      xp: serializer.fromJson<int>(json['xp']),
+      completedAt: serializer.fromJson<DateTime>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'day': serializer.toJson<String>(day),
+      'questId': serializer.toJson<String>(questId),
+      'xp': serializer.toJson<int>(xp),
+      'completedAt': serializer.toJson<DateTime>(completedAt),
+    };
+  }
+
+  QuestCompletionRow copyWith({
+    String? day,
+    String? questId,
+    int? xp,
+    DateTime? completedAt,
+  }) => QuestCompletionRow(
+    day: day ?? this.day,
+    questId: questId ?? this.questId,
+    xp: xp ?? this.xp,
+    completedAt: completedAt ?? this.completedAt,
+  );
+  QuestCompletionRow copyWithCompanion(QuestCompletionsCompanion data) {
+    return QuestCompletionRow(
+      day: data.day.present ? data.day.value : this.day,
+      questId: data.questId.present ? data.questId.value : this.questId,
+      xp: data.xp.present ? data.xp.value : this.xp,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuestCompletionRow(')
+          ..write('day: $day, ')
+          ..write('questId: $questId, ')
+          ..write('xp: $xp, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(day, questId, xp, completedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is QuestCompletionRow &&
+          other.day == this.day &&
+          other.questId == this.questId &&
+          other.xp == this.xp &&
+          other.completedAt == this.completedAt);
+}
+
+class QuestCompletionsCompanion extends UpdateCompanion<QuestCompletionRow> {
+  final Value<String> day;
+  final Value<String> questId;
+  final Value<int> xp;
+  final Value<DateTime> completedAt;
+  final Value<int> rowid;
+  const QuestCompletionsCompanion({
+    this.day = const Value.absent(),
+    this.questId = const Value.absent(),
+    this.xp = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  QuestCompletionsCompanion.insert({
+    required String day,
+    required String questId,
+    required int xp,
+    required DateTime completedAt,
+    this.rowid = const Value.absent(),
+  }) : day = Value(day),
+       questId = Value(questId),
+       xp = Value(xp),
+       completedAt = Value(completedAt);
+  static Insertable<QuestCompletionRow> custom({
+    Expression<String>? day,
+    Expression<String>? questId,
+    Expression<int>? xp,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (day != null) 'day': day,
+      if (questId != null) 'quest_id': questId,
+      if (xp != null) 'xp': xp,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  QuestCompletionsCompanion copyWith({
+    Value<String>? day,
+    Value<String>? questId,
+    Value<int>? xp,
+    Value<DateTime>? completedAt,
+    Value<int>? rowid,
+  }) {
+    return QuestCompletionsCompanion(
+      day: day ?? this.day,
+      questId: questId ?? this.questId,
+      xp: xp ?? this.xp,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (questId.present) {
+      map['quest_id'] = Variable<String>(questId.value);
+    }
+    if (xp.present) {
+      map['xp'] = Variable<int>(xp.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuestCompletionsCompanion(')
+          ..write('day: $day, ')
+          ..write('questId: $questId, ')
+          ..write('xp: $xp, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3507,6 +3873,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $EncyclopediaPacksTable(this);
   late final $EncyclopediaPackSpeciesTable encyclopediaPackSpecies =
       $EncyclopediaPackSpeciesTable(this);
+  late final $QuestCompletionsTable questCompletions = $QuestCompletionsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3520,6 +3889,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     guideDescriptions,
     encyclopediaPacks,
     encyclopediaPackSpecies,
+    questCompletions,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3995,6 +4365,7 @@ typedef $$SightingsTableCreateCompanionBuilder = SightingsCompanion Function({
   Value<double?> modelScore,
   Value<String?> audioClipPath,
   Value<bool> isDemo,
+  Value<String?> rarity,
 });
 typedef $$SightingsTableUpdateCompanionBuilder = SightingsCompanion Function({
   Value<int> id,
@@ -4007,6 +4378,7 @@ typedef $$SightingsTableUpdateCompanionBuilder = SightingsCompanion Function({
   Value<double?> modelScore,
   Value<String?> audioClipPath,
   Value<bool> isDemo,
+  Value<String?> rarity,
 });
 
 final class $$SightingsTableReferences
@@ -4112,6 +4484,11 @@ class $$SightingsTableFilterComposer
 
   ColumnFilters<bool> get isDemo => $composableBuilder(
     column: $table.isDemo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rarity => $composableBuilder(
+    column: $table.rarity,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4236,6 +4613,11 @@ class $$SightingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get rarity => $composableBuilder(
+    column: $table.rarity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$SpeciesTableOrderingComposer get speciesId {
     final $$SpeciesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4321,6 +4703,9 @@ class $$SightingsTableAnnotationComposer
 
   GeneratedColumn<bool> get isDemo =>
       $composableBuilder(column: $table.isDemo, builder: (column) => column);
+
+  GeneratedColumn<String> get rarity =>
+      $composableBuilder(column: $table.rarity, builder: (column) => column);
 
   $$SpeciesTableAnnotationComposer get speciesId {
     final $$SpeciesTableAnnotationComposer composer = $composerBuilder(
@@ -4436,6 +4821,7 @@ class $$SightingsTableTableManager
                 Value<double?> modelScore = const Value.absent(),
                 Value<String?> audioClipPath = const Value.absent(),
                 Value<bool> isDemo = const Value.absent(),
+                Value<String?> rarity = const Value.absent(),
               }) => SightingsCompanion(
                 id: id,
                 speciesId: speciesId,
@@ -4447,6 +4833,7 @@ class $$SightingsTableTableManager
                 modelScore: modelScore,
                 audioClipPath: audioClipPath,
                 isDemo: isDemo,
+                rarity: rarity,
               ),
           createCompanionCallback:
               ({
@@ -4460,6 +4847,7 @@ class $$SightingsTableTableManager
                 Value<double?> modelScore = const Value.absent(),
                 Value<String?> audioClipPath = const Value.absent(),
                 Value<bool> isDemo = const Value.absent(),
+                Value<String?> rarity = const Value.absent(),
               }) => SightingsCompanion.insert(
                 id: id,
                 speciesId: speciesId,
@@ -4471,6 +4859,7 @@ class $$SightingsTableTableManager
                 modelScore: modelScore,
                 audioClipPath: audioClipPath,
                 isDemo: isDemo,
+                rarity: rarity,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6881,6 +7270,210 @@ typedef $$EncyclopediaPackSpeciesTableProcessedTableManager =
       EncyclopediaPackSpeciesRow,
       PrefetchHooks Function({bool packId})
     >;
+typedef $$QuestCompletionsTableCreateCompanionBuilder =
+    QuestCompletionsCompanion Function({
+      required String day,
+      required String questId,
+      required int xp,
+      required DateTime completedAt,
+      Value<int> rowid,
+    });
+typedef $$QuestCompletionsTableUpdateCompanionBuilder =
+    QuestCompletionsCompanion Function({
+      Value<String> day,
+      Value<String> questId,
+      Value<int> xp,
+      Value<DateTime> completedAt,
+      Value<int> rowid,
+    });
+
+class $$QuestCompletionsTableFilterComposer
+    extends Composer<_$AppDatabase, $QuestCompletionsTable> {
+  $$QuestCompletionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get questId => $composableBuilder(
+    column: $table.questId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get xp => $composableBuilder(
+    column: $table.xp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$QuestCompletionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $QuestCompletionsTable> {
+  $$QuestCompletionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get questId => $composableBuilder(
+    column: $table.questId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get xp => $composableBuilder(
+    column: $table.xp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$QuestCompletionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $QuestCompletionsTable> {
+  $$QuestCompletionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<String> get questId =>
+      $composableBuilder(column: $table.questId, builder: (column) => column);
+
+  GeneratedColumn<int> get xp =>
+      $composableBuilder(column: $table.xp, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$QuestCompletionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $QuestCompletionsTable,
+          QuestCompletionRow,
+          $$QuestCompletionsTableFilterComposer,
+          $$QuestCompletionsTableOrderingComposer,
+          $$QuestCompletionsTableAnnotationComposer,
+          $$QuestCompletionsTableCreateCompanionBuilder,
+          $$QuestCompletionsTableUpdateCompanionBuilder,
+          (
+            QuestCompletionRow,
+            BaseReferences<
+              _$AppDatabase,
+              $QuestCompletionsTable,
+              QuestCompletionRow
+            >,
+          ),
+          QuestCompletionRow,
+          PrefetchHooks Function()
+        > {
+  $$QuestCompletionsTableTableManager(
+    _$AppDatabase db,
+    $QuestCompletionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$QuestCompletionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$QuestCompletionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$QuestCompletionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> day = const Value.absent(),
+                Value<String> questId = const Value.absent(),
+                Value<int> xp = const Value.absent(),
+                Value<DateTime> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => QuestCompletionsCompanion(
+                day: day,
+                questId: questId,
+                xp: xp,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String day,
+                required String questId,
+                required int xp,
+                required DateTime completedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => QuestCompletionsCompanion.insert(
+                day: day,
+                questId: questId,
+                xp: xp,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$QuestCompletionsTable, QuestCompletionRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $QuestCompletionsTable,
+                    QuestCompletionRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$QuestCompletionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $QuestCompletionsTable,
+      QuestCompletionRow,
+      $$QuestCompletionsTableFilterComposer,
+      $$QuestCompletionsTableOrderingComposer,
+      $$QuestCompletionsTableAnnotationComposer,
+      $$QuestCompletionsTableCreateCompanionBuilder,
+      $$QuestCompletionsTableUpdateCompanionBuilder,
+      (
+        QuestCompletionRow,
+        BaseReferences<
+          _$AppDatabase,
+          $QuestCompletionsTable,
+          QuestCompletionRow
+        >,
+      ),
+      QuestCompletionRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6904,4 +7497,6 @@ class $AppDatabaseManager {
         _db,
         _db.encyclopediaPackSpecies,
       );
+  $$QuestCompletionsTableTableManager get questCompletions =>
+      $$QuestCompletionsTableTableManager(_db, _db.questCompletions);
 }

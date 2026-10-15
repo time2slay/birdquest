@@ -241,6 +241,11 @@ abstract final class AppTheme {
         ),
       ),
       dividerTheme: DividerThemeData(color: p.outline, space: 1),
+      // Green tracks; the Material default is secondaryContainer (clay).
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        linearTrackColor: p.mossContainer,
+        circularTrackColor: p.mossContainer,
+      ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),

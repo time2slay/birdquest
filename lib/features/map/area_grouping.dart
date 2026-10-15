@@ -40,7 +40,7 @@ String areaCellKey(double lat, double lon) =>
 /// Sightings of a species closer than this to a pin join that pin.
 const double areaRadiusKm = 1.0;
 
-double _distanceKm(double lat1, double lon1, double lat2, double lon2) {
+double distanceKm(double lat1, double lon1, double lat2, double lon2) {
   const r = 6371.0;
   final dLat = (lat2 - lat1) * math.pi / 180;
   final dLon = (lon2 - lon1) * math.pi / 180;
@@ -64,7 +64,7 @@ List<AreaGroup> groupByArea(List<LocatedSighting> sightings) {
     for (var i = 0; i < clusters.length; i++) {
       final c = centers[i];
       if (c.species == s.speciesId &&
-          _distanceKm(c.lat, c.lon, s.latitude, s.longitude) <= areaRadiusKm) {
+          distanceKm(c.lat, c.lon, s.latitude, s.longitude) <= areaRadiusKm) {
         final list = clusters[i]..add(s);
         centers[i] = (
           species: c.species,

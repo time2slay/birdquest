@@ -91,13 +91,14 @@ class GuideRepository {
     GuideLanguage lang, {
     required bool allowNetwork,
   }) async {
+    // The chosen language first (cache, then network); the other language
+    // only as a fallback, so an English text cached earlier never hides a
+    // Russian one that can still be downloaded.
     final order = [lang, ...GuideLanguage.values.where((l) => l != lang)];
     for (final l in order) {
       final hit = await cachedDescription(scientificName, l);
       if (hit != null) return hit;
-    }
-    if (!allowNetwork || entry == null) return null;
-    for (final l in order) {
+      if (!allowNetwork || entry == null) continue;
       final title = entry.text(l)?.articleTitle;
       if (title == null) continue;
       try {
@@ -108,7 +109,12 @@ class GuideRepository {
           return GuideDescriptionData(text: text, lang: l, articleTitle: title);
         }
       } catch (_) {
-        return null; // Offline or rate-limited: try again next time.
+        // Offline or rate-limited: use any cached text, retry next time.
+        for (final other in order) {
+          final hit = await cachedDescription(scientificName, other);
+          if (hit != null) return hit;
+        }
+        return null;
       }
     }
     return null;

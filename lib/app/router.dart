@@ -11,6 +11,9 @@ import '../features/encyclopedia/encyclopedia_screen.dart';
 import '../features/encyclopedia/species_guide_screen.dart';
 import '../features/map/sightings_map_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/progress/checklist_screen.dart';
+import '../features/progress/progress.dart';
+import '../features/progress/progress_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/sightings/encounter_detail_screen.dart';
 import '../features/sightings/species_history_screen.dart';
@@ -31,8 +34,9 @@ GoRouter buildRouter({required bool Function() needsOnboarding}) => GoRouter(
       builder: (_, _) => const OnboardingScreen(),
     ),
     StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) =>
-          AchievementAnnouncer(child: _HomeShell(shell: shell)),
+      builder: (context, state, shell) => AchievementAnnouncer(
+        child: ProgressAnnouncer(child: _HomeShell(shell: shell)),
+      ),
       branches: [
         StatefulShellBranch(
           routes: [
@@ -106,6 +110,16 @@ GoRouter buildRouter({required bool Function() needsOnboarding}) => GoRouter(
       path: '/achievements',
       parentNavigatorKey: _rootKey,
       builder: (_, _) => const AchievementsScreen(),
+    ),
+    GoRoute(
+      path: '/progress',
+      parentNavigatorKey: _rootKey,
+      builder: (_, _) => const ProgressScreen(),
+    ),
+    GoRoute(
+      path: '/checklist',
+      parentNavigatorKey: _rootKey,
+      builder: (_, _) => const ChecklistScreen(),
     ),
     GoRoute(
       path: '/about',

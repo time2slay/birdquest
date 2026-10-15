@@ -79,7 +79,11 @@ class SpeciesHistoryScreen extends ConsumerWidget {
                 sliver: SliverList.list(
                   children: [
                     Text(
-                      entry.commonName,
+                      speciesDisplayName(
+                        ref,
+                        entry.scientificName,
+                        entry.commonName,
+                      ),
                       style: theme.textTheme.headlineMedium,
                     ),
                     Text(

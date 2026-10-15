@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../progress/progress_widgets.dart';
+import '../progress/rarity.dart';
+
 import '../../app/providers.dart';
 import '../../data/models.dart';
 import '../../shared/theme/app_theme.dart';
@@ -166,7 +169,14 @@ class _CollectionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final rarity = ref.watch(collectedRarityProvider)[entry.speciesId];
     return Card(
+      shape: rarity == null || rarity == Rarity.common
+          ? null
+          : RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(Radii.md),
+              side: BorderSide(color: rarity.color, width: 2.5),
+            ),
       child: InkWell(
         onTap: () => context.push('/species/${entry.speciesId}'),
         onLongPress: () => showCoverPicker(context, ref, entry),
@@ -189,6 +199,18 @@ class _CollectionCard extends ConsumerWidget {
                   ),
                   if (entry.allDemo)
                     const Positioned(top: 8, right: 8, child: DemoBadge()),
+                  if (rarity != null)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: RarityChip(rarity, dense: true),
+                      ),
+                    ),
                 ],
               ),
             ),

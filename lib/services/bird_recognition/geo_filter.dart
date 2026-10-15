@@ -36,7 +36,7 @@ class GeoContext {
 
 /// The set of audio-model species plausible at one place and week.
 class SpeciesRange {
-  SpeciesRange._(this.context, this._blocked, this.plausible);
+  SpeciesRange._(this.context, this._blocked, this.plausible, this.scores);
 
   final GeoContext context;
 
@@ -45,6 +45,9 @@ class SpeciesRange {
 
   /// Audio-model birds the geo model considers plausible here.
   final Set<String> plausible;
+
+  /// Geo-model probability per audio-model bird it knows (0–1).
+  final Map<String, double> scores;
 
   int get plausibleCount => plausible.length;
 
@@ -71,17 +74,19 @@ class SpeciesRange {
     };
     final blocked = <String>{};
     final plausible = <String>{};
+    final scores = <String, double>{};
     for (final label in audioLabels) {
       if (!label.isBird) continue;
       final p = score[label.scientificName];
       if (p == null || p.isNaN) continue;
+      scores[label.scientificName] = p;
       if (p >= threshold) {
         plausible.add(label.scientificName);
       } else {
         blocked.add(label.scientificName);
       }
     }
-    return SpeciesRange._(context, blocked, plausible);
+    return SpeciesRange._(context, blocked, plausible, scores);
   }
 }
 

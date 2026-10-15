@@ -77,6 +77,25 @@ class Sightings extends Table {
   /// Path (relative to the app media root) of the saved sound clip.
   TextColumn get audioClipPath => text().nullable()();
   BoolColumn get isDemo => boolean().withDefault(const Constant(false))();
+
+  /// How rare the species is where it was found ('common', 'uncommon',
+  /// 'rare', 'legendary'), fixed when saved so XP never changes later.
+  /// Null when it could not be determined (no location or geo model).
+  TextColumn get rarity => text().nullable()();
+}
+
+/// A daily quest the user completed. XP rewards are kept here so they stay
+/// stable even if the quest pool changes in a later version.
+@DataClassName('QuestCompletionRow')
+class QuestCompletions extends Table {
+  /// Local date, 'yyyy-mm-dd'.
+  TextColumn get day => text()();
+  TextColumn get questId => text()();
+  IntColumn get xp => integer()();
+  DateTimeColumn get completedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {day, questId};
 }
 
 /// A user photograph attached to a sighting. Only the file reference is

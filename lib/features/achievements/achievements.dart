@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../data/models.dart';
+import '../../data/repositories/progress_repository.dart';
 import '../../services/species_guide/species_guide.dart';
 import '../map/area_grouping.dart';
+import '../progress/progress.dart' show questCompletionsProvider;
 
 /// Aggregates over the user's real (non-demo) sightings.
 class AchievementStats {
@@ -23,6 +25,10 @@ class AchievementStats {
     required this.bestSessionSpecies,
     required this.areas,
     required this.longestStreakDays,
+    this.rareSpecies = 0,
+    this.legendarySpecies = 0,
+    this.questsCompleted = 0,
+    this.longestQuestStreak = 0,
   });
 
   static const empty = AchievementStats(
@@ -53,7 +59,17 @@ class AchievementStats {
   final int areas;
   final int longestStreakDays;
 
-  factory AchievementStats.compute(List<SightingFact> facts, int photos) {
+  /// Species saved at least once as rare or legendary where they were found.
+  final int rareSpecies;
+  final int legendarySpecies;
+  final int questsCompleted;
+  final int longestQuestStreak;
+
+  factory AchievementStats.compute(
+    List<SightingFact> facts,
+    int photos, {
+    List<QuestCompletion> quests = const [],
+  }) {
     Set<int> speciesInOrders(Set<String> orders) => {
       for (final f in facts)
         if (orders.contains(f.taxonOrder)) f.speciesId,
@@ -66,15 +82,7 @@ class AchievementStats {
       }
     }
 
-    final days = {
-      for (final f in facts)
-        DateTime(f.confirmedAt.year, f.confirmedAt.month, f.confirmedAt.day),
-    }.toList()..sort();
-    var streak = days.isEmpty ? 0 : 1, best = streak;
-    for (var i = 1; i < days.length; i++) {
-      streak = days[i].difference(days[i - 1]).inDays == 1 ? streak + 1 : 1;
-      if (streak > best) best = streak;
-    }
+    final questDays = {for (final q in quests) DateTime.parse(q.day)};
 
     return AchievementStats(
       species: {for (final f in facts) f.speciesId}.length,
@@ -100,9 +108,35 @@ class AchievementStats {
           if (f.latitude != null && f.longitude != null)
             areaCellKey(f.latitude!, f.longitude!),
       }.length,
-      longestStreakDays: best,
+      longestStreakDays: longestDayStreak({
+        for (final f in facts)
+          DateTime(f.confirmedAt.year, f.confirmedAt.month, f.confirmedAt.day),
+      }),
+      rareSpecies: {
+        for (final f in facts)
+          if (f.rarity == 'rare' || f.rarity == 'legendary') f.speciesId,
+      }.length,
+      legendarySpecies: {
+        for (final f in facts)
+          if (f.rarity == 'legendary') f.speciesId,
+      }.length,
+      questsCompleted: quests.length,
+      longestQuestStreak: longestDayStreak(questDays),
     );
   }
+}
+
+/// Longest run of consecutive calendar days in [days] (local midnights).
+int longestDayStreak(Set<DateTime> days) {
+  final sorted = days.toList()..sort();
+  var streak = sorted.isEmpty ? 0 : 1, best = streak;
+  for (var i = 1; i < sorted.length; i++) {
+    final prev = sorted[i - 1];
+    final next = DateTime(prev.year, prev.month, prev.day + 1);
+    streak = sorted[i] == next ? streak + 1 : 1;
+    if (streak > best) best = streak;
+  }
+  return best;
 }
 
 class Achievement {
@@ -277,6 +311,50 @@ final achievementCatalog = <Achievement>[
     target: 7,
     measure: (s) => s.longestStreakDays,
   ),
+  Achievement(
+    id: 'rare_1',
+    icon: Icons.diamond_rounded,
+    title: (en: 'Rare find', ru: 'Редкая находка'),
+    description: (
+      en: 'Save a rare bird for your region',
+      ru: 'Сохраните редкую для вашего региона птицу',
+    ),
+    target: 1,
+    measure: (s) => s.rareSpecies,
+  ),
+  Achievement(
+    id: 'legendary_1',
+    icon: Icons.auto_awesome_rounded,
+    title: (en: 'Legend', ru: 'Легенда'),
+    description: (
+      en: 'Save a bird far outside its usual range',
+      ru: 'Сохраните птицу далеко за пределами её ареала',
+    ),
+    target: 1,
+    measure: (s) => s.legendarySpecies,
+  ),
+  Achievement(
+    id: 'quests_10',
+    icon: Icons.task_alt_rounded,
+    title: (en: 'Quest seeker', ru: 'Искатель заданий'),
+    description: (
+      en: 'Complete 10 daily quests',
+      ru: 'Выполните 10 ежедневных заданий',
+    ),
+    target: 10,
+    measure: (s) => s.questsCompleted,
+  ),
+  Achievement(
+    id: 'quest_streak_7',
+    icon: Icons.whatshot_rounded,
+    title: (en: 'Dedicated', ru: 'Верность делу'),
+    description: (
+      en: 'Complete a quest 7 days in a row',
+      ru: 'Выполняйте задания 7 дней подряд',
+    ),
+    target: 7,
+    measure: (s) => s.longestQuestStreak,
+  ),
 ];
 
 class AchievementProgress {
@@ -288,7 +366,7 @@ class AchievementProgress {
   double get fraction => (value / achievement.target).clamp(0.0, 1.0);
 }
 
-final _sightingFactsProvider = StreamProvider<List<SightingFact>>(
+final sightingFactsProvider = StreamProvider<List<SightingFact>>(
   (ref) => ref.watch(sightingRepositoryProvider).watchSightingFacts(),
 );
 final _realPhotoCountProvider = StreamProvider<int>(
@@ -296,10 +374,11 @@ final _realPhotoCountProvider = StreamProvider<int>(
 );
 
 final achievementStatsProvider = Provider<AchievementStats?>((ref) {
-  final facts = ref.watch(_sightingFactsProvider).value;
+  final facts = ref.watch(sightingFactsProvider).value;
   final photos = ref.watch(_realPhotoCountProvider).value;
-  if (facts == null || photos == null) return null;
-  return AchievementStats.compute(facts, photos);
+  final quests = ref.watch(questCompletionsProvider).value;
+  if (facts == null || photos == null || quests == null) return null;
+  return AchievementStats.compute(facts, photos, quests: quests);
 });
 
 /// Remembers when each achievement was first unlocked (local only).

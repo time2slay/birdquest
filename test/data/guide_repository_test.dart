@@ -78,6 +78,63 @@ void main() {
     expect(calls, 1);
   });
 
+  test(
+    'a cached English text does not hide a downloadable Russian one',
+    () async {
+      var calls = 0;
+      final client = MockClient((req) async {
+        calls++;
+        return req.url.host == 'ru.wikipedia.org'
+            ? _extracts({'Чёрный дрозд': 'Русский текст.'})
+            : _extracts({'Common blackbird': 'English text.'});
+      });
+      final repo = GuideRepository(
+        db,
+        WikipediaClient(
+          userAgent: 'BirdQuest/1.0 (test@example.org)',
+          client: client,
+        ),
+      );
+      await repo.description(
+        'Turdus merula',
+        _entry,
+        GuideLanguage.en,
+        allowNetwork: true,
+      );
+      final ru = await repo.description(
+        'Turdus merula',
+        _entry,
+        GuideLanguage.ru,
+        allowNetwork: true,
+      );
+      expect(ru!.text, 'Русский текст.');
+      expect(calls, 2);
+
+      // Offline, with only English cached: English is shown as a fallback.
+      final offlineRepo = GuideRepository(
+        db,
+        WikipediaClient(
+          userAgent: 'BirdQuest/1.0 (test@example.org)',
+          client: MockClient((_) async => throw 'offline'),
+        ),
+      );
+      await db.delete(db.guideDescriptions).go();
+      await repo.description(
+        'Turdus merula',
+        _entry,
+        GuideLanguage.en,
+        allowNetwork: true,
+      );
+      final fallback = await offlineRepo.description(
+        'Turdus merula',
+        _entry,
+        GuideLanguage.ru,
+        allowNetwork: true,
+      );
+      expect(fallback!.lang, GuideLanguage.en);
+    },
+  );
+
   test('no network and nothing cached returns null', () async {
     final repo = GuideRepository(
       db,
@@ -256,7 +313,7 @@ void main() {
   );
 
   test(
-    'migrating a v1 database adds the guide and encyclopedia tables',
+    'migrating a v1 database adds the guide, encyclopedia and quest tables',
     () async {
       final dir = Directory.systemTemp.createTempSync('birdquest_mig_');
       final file = File('${dir.path}/db.sqlite');
@@ -266,6 +323,8 @@ void main() {
       await v1.customStatement('DROP TABLE encyclopedia_pack_species');
       await v1.customStatement('DROP TABLE encyclopedia_packs');
       await v1.customStatement('DROP TABLE guide_descriptions');
+      await v1.customStatement('DROP TABLE quest_completions');
+      await v1.customStatement('ALTER TABLE sightings DROP COLUMN rarity');
       await v1.customStatement('PRAGMA user_version = 1');
       await v1.close();
 
@@ -283,6 +342,9 @@ void main() {
         'Turdus merula',
         reason: 'existing data survives the migration',
       );
+      // v3: rarity column and quest table exist after the upgrade.
+      await upgraded.customSelect('SELECT rarity FROM sightings').get();
+      expect(await upgraded.select(upgraded.questCompletions).get(), isEmpty);
       await upgraded.close();
       dir.deleteSync(recursive: true);
     },

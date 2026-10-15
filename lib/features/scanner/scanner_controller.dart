@@ -392,6 +392,7 @@ class ScannerController extends Notifier<ScannerState> {
     double? latitude,
     double? longitude,
     String? notes,
+    String? rarity,
   }) async {
     final g = state.groups[key];
     if (g == null) throw StateError('Unknown detection group $key');
@@ -420,6 +421,7 @@ class ScannerController extends Notifier<ScannerState> {
             longitude: longitude,
             notes: notes,
             isDemo: state.isDemo,
+            rarity: rarity,
           ),
         );
     _updateGroup(

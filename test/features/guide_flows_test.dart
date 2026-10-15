@@ -363,8 +363,9 @@ void main() {
           ),
         ),
       );
-      Future<void> settle() async {
-        for (var i = 0; i < 10; i++) {
+      // Waits for real async work (database, fake network) until [done].
+      Future<void> settle(bool Function() done) async {
+        for (var i = 0; i < 100 && !done(); i++) {
           await tester.runAsync(
             () => Future<void>.delayed(const Duration(milliseconds: 50)),
           );
@@ -372,7 +373,12 @@ void main() {
         }
       }
 
-      await settle();
+      await settle(
+        () => find
+            .textContaining('could not be downloaded')
+            .evaluate()
+            .isNotEmpty,
+      );
       expect(
         find.text('1 photo could not be downloaded — tap Update to retry'),
         findsOneWidget,
@@ -380,9 +386,8 @@ void main() {
 
       commonsDown = false;
       await tester.tap(find.widgetWithText(FilledButton, 'Update'));
-      await settle();
+      await settle(() => find.text('Area updated').evaluate().isNotEmpty);
       expect(find.textContaining('could not be downloaded'), findsNothing);
-      await tester.pump(const Duration(milliseconds: 500));
       expect(find.text('Area updated'), findsOneWidget);
       expect(
         await tester.runAsync(

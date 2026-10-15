@@ -13,6 +13,8 @@ import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/clip_player.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/guide_description.dart';
+import '../progress/progress_widgets.dart';
+import '../progress/rarity.dart';
 import '../scanner/scanner_controller.dart';
 
 /// Details for a species heard in the current session, with Take Photo and
@@ -30,6 +32,15 @@ class BirdDetailsScreen extends ConsumerStatefulWidget {
 class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
   bool _attachLocation = true;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Rarity chip: compute the home region once if it is not known yet.
+    if (ref.read(regionProfileProvider) == null) {
+      ref.read(regionProfileProvider.notifier).ensureHere();
+    }
+  }
 
   ScannerController get _scanner =>
       ref.read(scannerControllerProvider.notifier);
@@ -58,11 +69,17 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
         lon = pos?.longitude;
         if (pos == null) _snack('Location unavailable — saved without GPS');
       }
+      // Rarity where the bird was found, fixed now so XP never shifts later.
+      final regions = ref.read(regionProfileProvider.notifier);
+      final profile = lat != null && lon != null
+          ? await regions.ensureNear(lat, lon)
+          : await regions.ensureHere();
       await _scanner.saveEncounter(
         widget.speciesKey,
         separate: separate,
         latitude: lat,
         longitude: lon,
+        rarity: profile?.rarityOf(widget.speciesKey)?.name,
       );
       if (!mounted) return;
       _snack(
@@ -150,6 +167,11 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
                     color: context.nature.inkMuted,
                     fontWeight: FontWeight.w400,
                   ),
+                ),
+                const SizedBox(height: Space.sm),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: SpeciesRarityChip(species.scientificName),
                 ),
                 const SizedBox(height: Space.md),
                 Wrap(

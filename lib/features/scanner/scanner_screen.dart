@@ -14,6 +14,7 @@ import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/guide_description.dart';
 import '../../shared/widgets/theme_toggle.dart';
+import '../progress/progress_widgets.dart';
 import 'scanner_controller.dart';
 import 'widgets/level_waveform.dart';
 import 'widgets/listen_button.dart';
@@ -101,6 +102,8 @@ class ScannerScreen extends ConsumerWidget {
                   const DemoBanner(),
                   const SizedBox(height: Space.md),
                 ],
+                const LevelCard(),
+                const SizedBox(height: Space.md),
                 _ListeningHero(state: state, demo: demo),
                 const SizedBox(height: Space.md),
                 if (!demo && modelStatus is! ModelInstalled)

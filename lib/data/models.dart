@@ -31,7 +31,11 @@ class EncounterDraft {
     this.longitude,
     this.notes,
     this.isDemo = false,
+    this.rarity,
   });
+
+  /// Rarity name in the user's region at save time, or null if unknown.
+  final String? rarity;
 
   final SpeciesInfo species;
   final DateTime confirmedAt;
@@ -182,8 +186,12 @@ class SightingFact {
     this.sessionId,
     this.latitude,
     this.longitude,
+    this.sightingId = 0,
+    this.photoCount = 0,
+    this.rarity,
   });
 
+  final int sightingId;
   final int speciesId;
   final String scientificName;
   final String? taxonOrder;
@@ -191,4 +199,10 @@ class SightingFact {
   final int? sessionId;
   final double? latitude;
   final double? longitude;
+  final int photoCount;
+
+  /// Rarity name stored when saved ('common' … 'legendary'), or null.
+  final String? rarity;
+
+  bool get hasLocation => latitude != null && longitude != null;
 }
