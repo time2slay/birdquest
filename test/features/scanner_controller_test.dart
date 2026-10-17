@@ -6,6 +6,7 @@ import 'package:birdquest/app/providers.dart';
 import 'package:birdquest/data/database/app_database.dart';
 import 'package:birdquest/data/models.dart';
 import 'package:birdquest/features/scanner/scanner_controller.dart';
+import 'package:birdquest/services/audio/spectrogram.dart';
 import 'package:birdquest/services/bird_recognition/bird_recognition_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,9 @@ class FakeRecognizer implements BirdRecognitionService {
 
   @override
   String get modelName => 'fake';
+
+  @override
+  final spectrogram = SpectrogramBuffer();
 
   @override
   Future<Stream<RecognitionEvent>> start() async {

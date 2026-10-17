@@ -8,6 +8,9 @@ import '../../shared/theme/app_theme.dart';
 import '../../shared/theme/tokens.dart';
 import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/guide_description.dart';
+import '../../shared/widgets/reference_voices.dart';
+import '../../shared/widgets/species_extras.dart';
+import '../species_traits/meme_badge_widgets.dart';
 
 /// Encyclopedia page for one species: reference photo, names in both
 /// languages, description, and the user's own encounters.
@@ -71,8 +74,11 @@ class SpeciesGuideScreen extends ConsumerWidget {
                     color: context.nature.inkMuted,
                   ),
                 ),
+                MemeBadgeRow(scientificName: scientificName),
                 const SizedBox(height: Space.lg),
                 GuideDescription(scientificName: scientificName),
+                ReferenceVoices(scientificName: scientificName),
+                SpeciesExtras(scientificName: scientificName),
                 const SizedBox(height: Space.lg),
                 Card(
                   child: ListTile(

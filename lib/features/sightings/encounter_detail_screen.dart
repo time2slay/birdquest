@@ -9,6 +9,8 @@ import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/clip_player.dart';
 import '../../shared/widgets/common.dart';
 import '../bird_details/photo_capture.dart';
+import 'share_card.dart';
+import '../progress/rarity.dart';
 
 /// One saved encounter: photos, sound, location and notes, with delete.
 class EncounterDetailScreen extends ConsumerWidget {
@@ -144,6 +146,29 @@ class _EncounterView extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Encounter'),
         actions: [
+          if (!encounter.isDemo)
+            IconButton(
+              tooltip: 'Share',
+              icon: const Icon(Icons.ios_share_rounded),
+              onPressed: () async {
+                final entry = await ref.read(
+                  collectionEntryProvider(encounter.speciesId).future,
+                );
+                if (entry == null || !context.mounted) return;
+                showShareCard(
+                  context,
+                  ShareCardData(
+                    scientificName: entry.scientificName,
+                    commonName: entry.commonName,
+                    date: encounter.confirmedAt,
+                    photoPath: encounter.photos.isEmpty
+                        ? null
+                        : media.absolute(encounter.photos.first.path),
+                    rarity: Rarity.parse(encounter.rarity),
+                  ),
+                );
+              },
+            ),
           IconButton(
             tooltip: 'Delete encounter',
             icon: const Icon(Icons.delete_outline_rounded),

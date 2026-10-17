@@ -11,6 +11,11 @@ import '../../shared/widgets/bird_image.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/guide_description.dart';
 import '../collection/cover_picker.dart';
+import '../../shared/widgets/reference_voices.dart';
+import '../../shared/widgets/species_extras.dart';
+import '../species_traits/meme_badge_widgets.dart';
+import 'share_card.dart';
+import '../progress/rarity.dart';
 
 /// A species' personal discovery history.
 class SpeciesHistoryScreen extends ConsumerWidget {
@@ -56,6 +61,27 @@ class SpeciesHistoryScreen extends ConsumerWidget {
                 foregroundColor: Colors.white,
                 actions: [
                   IconButton(
+                    tooltip: 'Share',
+                    icon: const Icon(Icons.ios_share_rounded),
+                    onPressed: () {
+                      final latest = encounters.value?.firstOrNull;
+                      showShareCard(
+                        context,
+                        ShareCardData(
+                          scientificName: entry.scientificName,
+                          commonName: entry.commonName,
+                          date: latest?.confirmedAt ?? entry.lastSeen,
+                          photoPath: entry.coverPhotoPath == null
+                              ? null
+                              : ref
+                                    .read(mediaStoreProvider)
+                                    .absolute(entry.coverPhotoPath!),
+                          rarity: Rarity.parse(latest?.rarity),
+                        ),
+                      );
+                    },
+                  ),
+                  IconButton(
                     tooltip: 'Choose cover photo',
                     icon: const Icon(Icons.wallpaper_rounded),
                     onPressed: () => showCoverPicker(context, ref, entry),
@@ -94,6 +120,7 @@ class SpeciesHistoryScreen extends ConsumerWidget {
                         color: context.nature.inkMuted,
                       ),
                     ),
+                    MemeBadgeRow(scientificName: entry.scientificName),
                     const SizedBox(height: Space.lg),
                     Row(
                       children: [
@@ -116,6 +143,8 @@ class SpeciesHistoryScreen extends ConsumerWidget {
                       scientificName: entry.scientificName,
                       fallback: entry.description,
                     ),
+                    ReferenceVoices(scientificName: entry.scientificName),
+                    SpeciesExtras(scientificName: entry.scientificName),
                     const SectionHeader('Encounters'),
                   ],
                 ),

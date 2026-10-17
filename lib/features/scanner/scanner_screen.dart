@@ -16,9 +16,9 @@ import '../../shared/widgets/guide_description.dart';
 import '../../shared/widgets/theme_toggle.dart';
 import '../progress/progress_widgets.dart';
 import 'scanner_controller.dart';
-import 'widgets/level_waveform.dart';
 import 'widgets/listen_button.dart';
 import 'widgets/model_setup_card.dart';
+import 'widgets/spectrogram_view.dart';
 
 class ScannerScreen extends ConsumerWidget {
   const ScannerScreen({super.key});
@@ -249,12 +249,16 @@ class _ListeningHero extends ConsumerWidget {
             listening: state.isListening,
             busy: state.isBusy,
             level: level,
+            compact: state.isListening || state.groups.isNotEmpty,
             onPressed: state.isListening ? controller.stop : controller.start,
           ),
           AnimatedOpacity(
-            opacity: state.isListening ? 1 : 0.35,
+            opacity: state.isListening ? 1 : 0.8,
             duration: Motion.medium,
-            child: LevelWaveform(levels: state.levels),
+            child: FramedSpectrogram(
+              buffer: ref.watch(recognitionServiceProvider).spectrogram,
+              active: state.isListening,
+            ),
           ),
           if (state.geoFilter != null) ...[
             const SizedBox(height: Space.md),
@@ -281,7 +285,20 @@ class _DetectionTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final time = DateFormat.Hms().format(group.lastHeard);
-    return Card(
+    // Flashes whenever the bird sings again (a new hit), like a live list.
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(group.hits),
+      tween: Tween(begin: 1, end: 0),
+      duration: const Duration(milliseconds: 1400),
+      curve: Curves.easeOutCubic,
+      builder: (context, glow, child) => Card(
+        color: Color.lerp(
+          theme.cardTheme.color ?? theme.colorScheme.surface,
+          context.nature.ochreContainer,
+          glow,
+        ),
+        child: child,
+      ),
       child: InkWell(
         onTap: onTap,
         child: Padding(

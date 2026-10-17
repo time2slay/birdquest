@@ -6,11 +6,24 @@ import '../theme/tokens.dart';
 
 /// Play/pause control for a recorded bird sound clip.
 class ClipPlayer extends StatefulWidget {
-  const ClipPlayer({super.key, required this.loadPath, this.label});
+  const ClipPlayer({
+    super.key,
+    required this.loadPath,
+    this.label,
+    this.subtitle,
+    this.onInfo,
+  });
 
-  /// Resolves the absolute file path lazily (clips may be written on demand).
+  /// Resolves the absolute file path lazily (clips may be written or
+  /// downloaded on demand).
   final Future<String?> Function() loadPath;
   final String? label;
+
+  /// Second line; defaults to the microphone-clip description.
+  final String? subtitle;
+
+  /// Shows an info button (e.g. attribution) when set.
+  final VoidCallback? onInfo;
 
   @override
   State<ClipPlayer> createState() => _ClipPlayerState();
@@ -20,6 +33,7 @@ class _ClipPlayerState extends State<ClipPlayer> {
   final _player = AudioPlayer();
   String? _loaded;
   bool _failed = false;
+  bool _loading = false;
 
   @override
   void dispose() {
@@ -33,7 +47,9 @@ class _ClipPlayerState extends State<ClipPlayer> {
       return;
     }
     try {
+      setState(() => _loading = true);
       final path = await widget.loadPath();
+      if (mounted) setState(() => _loading = false);
       if (path == null) return;
       if (path != _loaded) {
         await _player.setFilePath(path);
@@ -44,7 +60,12 @@ class _ClipPlayerState extends State<ClipPlayer> {
       }
       await _player.play();
     } catch (_) {
-      if (mounted) setState(() => _failed = true);
+      if (mounted) {
+        setState(() {
+          _failed = true;
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -66,10 +87,17 @@ class _ClipPlayerState extends State<ClipPlayer> {
           return Row(
             children: [
               IconButton.filled(
-                onPressed: _failed ? null : _toggle,
-                icon: Icon(
-                  playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                ),
+                onPressed: _failed || _loading ? null : _toggle,
+                icon: _loading
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      )
+                    : Icon(
+                        playing
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                      ),
                 tooltip: playing ? 'Pause' : 'Play recording',
               ),
               const SizedBox(width: Space.md),
@@ -84,8 +112,11 @@ class _ClipPlayerState extends State<ClipPlayer> {
                     Text(
                       _failed
                           ? 'This recording could not be played.'
-                          : '3-second clip from your microphone',
+                          : widget.subtitle ??
+                                '3-second clip from your microphone',
                       style: theme.textTheme.bodySmall,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -109,6 +140,12 @@ class _ClipPlayerState extends State<ClipPlayer> {
                   );
                 },
               ),
+              if (widget.onInfo != null)
+                IconButton(
+                  onPressed: widget.onInfo,
+                  icon: const Icon(Icons.info_outline_rounded),
+                  tooltip: 'About this recording',
+                ),
             ],
           );
         },

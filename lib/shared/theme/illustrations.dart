@@ -10,9 +10,15 @@ abstract final class Illustrations {
   static const offlineModel = 'assets/illustrations/offline_model.png';
   static const topoTexture = 'assets/illustrations/topo_texture.jpg';
 
+  /// Foliage border around the live spectrogram (transparent elsewhere).
+  static const spectrogramFrame = 'assets/illustrations/spectrogram_frame.webp';
+
   /// Picks the night variant of [asset] when the theme is dark.
   static String forBrightness(BuildContext context, String asset) =>
       Theme.of(context).brightness == Brightness.dark
-      ? asset.replaceFirst('.png', '_dark.png')
+      ? asset.replaceFirstMapped(
+          RegExp(r'\.(png|webp)$'),
+          (m) => '_dark.${m[1]}',
+        )
       : asset;
 }

@@ -18,6 +18,7 @@ class EncyclopediaRequest {
     required this.radiusKm,
     required this.languages,
     required this.withPhotos,
+    this.withVoices = false,
   });
 
   final String name;
@@ -27,9 +28,17 @@ class EncyclopediaRequest {
   final List<GuideLanguage> languages;
   final bool withPhotos;
 
-  /// Rough download size: ~0.6 KB of text per language and ~90 KB per photo.
-  int estimateBytes(int species) =>
-      species * (languages.length * 600 + (withPhotos ? 90000 : 0));
+  /// One reference recording per species that has one.
+  final bool withVoices;
+
+  /// Typical size of one Commons reference recording.
+  static const voiceBytes = 700000;
+
+  /// Rough download size: ~0.6 KB of text per language, ~90 KB per photo and
+  /// ~0.7 MB per recording ([withVoiceCount] species have one).
+  int estimateBytes(int species, {int withVoiceCount = 0}) =>
+      species * (languages.length * 600 + (withPhotos ? 90000 : 0)) +
+      (withVoices ? withVoiceCount * voiceBytes : 0);
 }
 
 sealed class EncyclopediaJob {
@@ -69,9 +78,13 @@ class JobDone extends EncyclopediaJob {
     this.speciesCount, {
     required this.packId,
     this.failedPhotos = 0,
+    this.failedVoices = 0,
     this.updated = false,
   });
   final int speciesCount;
+
+  /// Recordings that could not be downloaded.
+  final int failedVoices;
 
   /// The area that was downloaded or updated.
   final int packId;
@@ -179,6 +192,7 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
         radiusKm: pack.radiusKm,
         languages: pack.languages,
         withPhotos: pack.withPhotos,
+        withVoices: pack.withVoices,
       ),
       species,
       packId: pack.id,
@@ -196,7 +210,9 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
     final guide = await ref.read(speciesGuideProvider.future);
     final repo = ref.read(guideRepositoryProvider);
     final photos = ref.read(referencePhotoServiceProvider);
+    final voices = ref.read(referenceVoiceServiceProvider);
     var failedPhotos = 0;
+    var failedVoices = 0;
     try {
       for (final lang in request.languages) {
         final items = [
@@ -251,6 +267,30 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
         ref.invalidate(referencePhotoProvider);
       }
 
+      if (request.withVoices) {
+        final best = [
+          for (final s in species)
+            if (guide[s.scientificName]?.voices case [final v, ...]) v,
+        ];
+        const stage = 'Voices';
+        var done = 0;
+        state = JobDownloading(stage, 0, best.length, packId: packId);
+        voices.forgetFailures();
+        final queue = [...best];
+        Future<void> worker() async {
+          while (queue.isNotEmpty && !_cancelled) {
+            if (await voices.get(queue.removeLast()) == null) failedVoices++;
+            done++;
+            if (!_cancelled) {
+              state = JobDownloading(stage, done, best.length, packId: packId);
+            }
+          }
+        }
+
+        await Future.wait([worker(), worker()]);
+        if (_cancelled) return;
+      }
+
       final id =
           packId ??
           await repo.createPack(
@@ -260,6 +300,7 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
             radiusKm: request.radiusKm,
             languages: request.languages,
             withPhotos: request.withPhotos,
+            withVoices: request.withVoices,
             species: species,
           );
       ref.invalidate(descriptionProvider);
@@ -267,6 +308,7 @@ class EncyclopediaDownloadController extends Notifier<EncyclopediaJob> {
         species.length,
         packId: id,
         failedPhotos: failedPhotos,
+        failedVoices: failedVoices,
         updated: packId != null,
       );
     } catch (e) {
@@ -284,6 +326,12 @@ String failedPhotosText(int count, {required bool ru}) => ru
     ? '$count фото не удалось скачать — нажмите «Обновить», чтобы повторить'
     : '$count ${count == 1 ? 'photo' : 'photos'} could not be downloaded — '
           'tap Update to retry';
+
+/// "3 recordings could not be downloaded — tap Update to retry".
+String failedVoicesText(int count, {required bool ru}) => ru
+    ? '$count записей голосов не удалось скачать — нажмите «Обновить»'
+    : '$count ${count == 1 ? 'recording' : 'recordings'} could not be '
+          'downloaded — tap Update to retry';
 
 final regionSpeciesServiceProvider = Provider<RegionSpeciesService>(
   (ref) => RegionSpeciesService(ref.read(modelManagerProvider)),

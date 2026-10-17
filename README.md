@@ -11,6 +11,7 @@ Flutter · Riverpod · Drift (SQLite) · ONNX Runtime · BirdNET+ V3.0 · Materi
 | On-device recognition (BirdNET+ V3.0, ONNX) | **Working.** Verified on an arm64 Android 15 phone: real microphone input, about 370 ms per 3 s window |
 | First-run model download (81 MB: Zenodo + GitHub; MD5/SHA-256 verified, resumable) | **Working.** Verified on the phone |
 | Scanner, grouping, uncertainty labels, permissions | Working |
+| Live spectrogram | **Working.** Scrolling STFT view (pure Dart FFT, adaptive noise floor) in a painted foliage frame; detected species pinned where they sang; a row flashes when its bird sings again |
 | Bird details, clip playback, Take Photo (x1/x2/x5 + pinch zoom), Save Discovery | Working |
 | Collection, stats, cover photo, history, encounter detail and delete | Working |
 | Demo mode | Simulated results, clearly labeled DEMO everywhere |
@@ -21,7 +22,11 @@ Flutter · Riverpod · Drift (SQLite) · ONNX Runtime · BirdNET+ V3.0 · Materi
 | Descriptions | Fetched once per species from Wikipedia (EN or RU, follows phone; switch in Settings) and cached; offline via Encyclopedia |
 | Encyclopedia (optional) | **Working.** User picks an area on the map (25/100/300 km) and languages; the geo model finds every bird living there year-round; downloads text and photos |
 | Map | **Working.** OpenFreeMap tiles (day/night); pins show the species' reference photo with a count per ~1 km area; tap for preview, description and stats |
-| Achievements | **Working.** 17 local badges (milestones, owls, dawn chorus, streaks…); demo sightings never count |
+| Achievements | **Working.** 24 local badges (milestones, owls, dawn chorus, streaks, quests, quiz…); demo sightings never count |
+| Reference voices | **Working.** Up to 3 freely licensed recordings per species (1,731 of 9,834 species, 3,490 recordings) from Wikimedia Commons (CC0 / CC BY / CC BY-SA; mostly xeno-canto imports), played on demand and cached; one per species downloadable with an Encyclopedia area |
+| Species facts | **Working.** Monthly seasonality in your region (BirdNET+ geo model), look-alikes (genus → family → order, local first), flight speed (Wikipedia list, family median otherwise; ~890 species) and fun "meme" badges by traits (17 stickers) |
+| Voice quiz | **Working.** "Guess the bird by voice" from your own clips and reference voices of local birds, with look-alike distractors; +5 XP per right answer (max 50 XP a day), a daily quest and 3 achievements |
+| Share & export | **Working.** Share a find as an image card (no coordinates); export the collection as CSV, GPX or an eBird import file |
 | Leaderboard / shared player sightings | **Not yet.** Needs a backend. Map counts are currently your own sightings |
 | Licensed reference bird photos (bundled) | None bundled; placeholders when offline/no licensed photo |
 
@@ -40,7 +45,7 @@ On first launch, tap **Download (81 MB)** to install the models, or use **Try de
 ## Tests
 
 ```bash
-D:/flutter/bin/flutter test                     # 86 unit and widget tests
+D:/flutter/bin/flutter test                     # 126 unit and widget tests
 ```
 
 `integration_test/birdnet_inference_test.dart` runs the real model on a device. Before running it, push a 32 kHz mono PCM16 recording, as described in the file header.
@@ -76,5 +81,8 @@ Photos and clips are stored under the app documents directory (`media/sightings/
 - **Reference photos:** Cornell / Macaulay species images are mostly NC or ©, so none are bundled.
 - **Species index:** `tool/build_species_info.py` rebuilds `assets/data/species_index.json.gz` from Wikidata (CC0), Wikipedia titles and Commons licenses. It keeps only photos whose license allows commercial use (CC0, PD, CC BY, CC BY-SA) and always shows author + license on large images.
 - **Descriptions:** Wikipedia (EN, RU), CC BY-SA 4.0, attributed with a link on every description.
+- **Reference voices:** Wikimedia Commons, per-file licenses (Commons hosts only free licenses; NC/ND are rejected anyway), author and license shown with every recording. Picked at build time by `tool/build_species_info.py`.
+- **Flight speeds:** Wikipedia's [List of birds by flight speed](https://en.wikipedia.org/wiki/List_of_birds_by_flight_speed) (CC BY-SA 4.0) and Wikidata P2052 (CC0); species without a figure show their family's median, labelled as such.
+- **Families:** Wikidata parent taxa (CC0).
 - **Map:** © OpenStreetMap contributors, tiles by OpenFreeMap.
-- **UI artwork:** the app icon, empty-state illustrations (day and night) and the topographic texture in `assets/` were generated for BirdQuest with Google Flow (Nano Banana 2.1). They are decorative and never depict a specific species.
+- **UI artwork:** the app icon, empty-state illustrations (day and night), the foliage frame around the live spectrogram (`spectrogram_frame*.webp`), the 17 meme badge stickers (`assets/memes/`, backgrounds keyed out) and the topographic texture in `assets/` were generated for BirdQuest with Google Flow (Nano Banana 2.1). They are decorative and never depict a specific species.

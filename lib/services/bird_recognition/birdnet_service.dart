@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../audio/audio_capture_service.dart';
 import '../audio/pcm.dart';
 import '../audio/ring_buffer.dart';
+import '../audio/spectrogram.dart';
 import 'bird_recognition_service.dart';
 import 'geo_filter.dart';
 import 'labels.dart';
@@ -54,6 +55,10 @@ class BirdNetRecognitionService implements BirdRecognitionService {
   SpeciesRange? _range;
   Timer? _geoTimer;
   final _buffer = RingBuffer(windowSamples * 2);
+  final _analyzer = SpectrogramAnalyzer(sampleRate: sampleRate);
+
+  @override
+  final spectrogram = SpectrogramBuffer();
 
   List<ModelLabel>? _labels;
   StreamController<RecognitionEvent>? _events;
@@ -136,6 +141,8 @@ class BirdNetRecognitionService implements BirdRecognitionService {
 
     final events = _events = StreamController<RecognitionEvent>();
     _buffer.clear();
+    _analyzer.reset();
+    spectrogram.clear();
     final audio = await _capture.start();
     _audioSub = audio.listen(
       _onAudio,
@@ -152,6 +159,7 @@ class BirdNetRecognitionService implements BirdRecognitionService {
 
   void _onAudio(Float32List samples) {
     _buffer.addAll(samples);
+    spectrogram.addColumns(_analyzer.add(samples));
     final now = DateTime.now();
     if (now.difference(_lastLevel).inMilliseconds >= 60) {
       _lastLevel = now;
@@ -175,14 +183,16 @@ class BirdNetRecognitionService implements BirdRecognitionService {
     try {
       final scores = await _classifier.classify(window);
       if (events.isClosed) return;
+      final predictions = postProcessor.process(
+        scores,
+        labels,
+        allow: _range?.allows,
+      );
+      spectrogram.mark(predictions);
       events.add(
         PredictionEvent(
           at: at,
-          predictions: postProcessor.process(
-            scores,
-            labels,
-            allow: _range?.allows,
-          ),
+          predictions: predictions,
           window: window,
           sampleRate: sampleRate,
         ),

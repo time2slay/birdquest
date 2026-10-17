@@ -11,6 +11,7 @@ import 'package:birdquest/features/map/sightings_map_screen.dart';
 import 'package:birdquest/services/bird_recognition/labels.dart';
 import 'package:birdquest/services/bird_recognition/model_manager.dart';
 import 'package:birdquest/services/species_guide/reference_photo_service.dart';
+import 'package:birdquest/services/species_guide/reference_voice_service.dart';
 import 'package:birdquest/services/species_guide/region_species_service.dart';
 import 'package:birdquest/services/species_guide/species_guide.dart';
 import 'package:birdquest/services/species_guide/wikipedia_client.dart';
@@ -43,6 +44,18 @@ final _guide = SpeciesGuide({
       author: 'Andreas Trepte',
       license: 'CC BY-SA 2.5',
     ),
+    voices: [
+      GuideVoice(
+        fileName: 'Turdus_merula_song.ogg',
+        author: 'Diana Tudor',
+        license: 'CC BY 4.0',
+      ),
+      GuideVoice(
+        fileName: 'Turdus_merula_call.ogg',
+        author: 'Diana Tudor',
+        license: 'CC BY 4.0',
+      ),
+    ],
   ),
   // English article only, no photo.
   'Erithacus rubecula': const GuideEntry(
@@ -114,10 +127,11 @@ MockClient _wikimedia(List<http.Request> log, {bool Function()? commonsDown}) =>
       }
       if (req.url.host == 'commons.wikimedia.org') {
         if (commonsDown?.call() ?? false) return http.Response('', 503);
+        final audio = req.url.path.endsWith('.ogg');
         return http.Response.bytes(
           List.filled(64, 1),
           200,
-          headers: {'content-type': 'image/jpeg'},
+          headers: {'content-type': audio ? 'audio/ogg' : 'image/jpeg'},
         );
       }
       return http.Response('', 404);
@@ -167,6 +181,13 @@ void main() {
     referencePhotoServiceProvider.overrideWith(
       (ref) => ReferencePhotoService(
         paths.speciesPhotosDir,
+        userAgent: userAgent,
+        client: _wikimedia(requests, commonsDown: () => commonsDown),
+      ),
+    ),
+    referenceVoiceServiceProvider.overrideWith(
+      (ref) => ReferenceVoiceService(
+        paths.speciesVoicesDir,
         userAgent: userAgent,
         client: _wikimedia(requests, commonsDown: () => commonsDown),
       ),
@@ -265,6 +286,47 @@ void main() {
         );
       },
     );
+
+    test('with Voices it keeps the best recording of each species', () async {
+      final c = ProviderContainer(overrides: [...overrides()]);
+      addTearDown(c.dispose);
+      final job = c.read(encyclopediaDownloadProvider.notifier);
+      final states = <EncyclopediaJob>[];
+      c.listen(encyclopediaDownloadProvider, (_, s) => states.add(s));
+      const request = EncyclopediaRequest(
+        name: 'Home',
+        latitude: 52.52,
+        longitude: 13.40,
+        radiusKm: 25,
+        languages: [GuideLanguage.en],
+        withPhotos: false,
+        withVoices: true,
+      );
+      expect(
+        request.estimateBytes(2, withVoiceCount: 1),
+        2 * 600 + EncyclopediaRequest.voiceBytes,
+      );
+      await job.preview(request);
+      await job.download();
+      final done = c.read(encyclopediaDownloadProvider);
+      expect(done, isA<JobDone>(), reason: '$done');
+      expect((done as JobDone).failedVoices, 0);
+      expect(
+        states.whereType<JobDownloading>().map((s) => s.stage),
+        contains('Voices'),
+      );
+      final voices = c.read(referenceVoiceServiceProvider);
+      final entry = _guide['Turdus merula']!;
+      expect(await voices.cached(entry.voices.first), isNotNull);
+      expect(
+        await voices.cached(entry.voices.last),
+        isNull,
+        reason: 'only the best recording per species, to keep areas small',
+      );
+      final pack =
+          (await c.read(guideRepositoryProvider).watchPacks().first).single;
+      expect(pack.withVoices, isTrue);
+    });
 
     test('without a Wikimedia contact it stops before any request', () async {
       final c = ProviderContainer(overrides: [...overrides(userAgent: null)]);

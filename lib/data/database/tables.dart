@@ -98,6 +98,19 @@ class QuestCompletions extends Table {
   Set<Column> get primaryKey => {day, questId};
 }
 
+/// One answer in the "guess the bird by voice" quiz (schema v4). XP for
+/// correct answers is derived from these rows.
+@DataClassName('QuizAnswerRow')
+class QuizAnswers extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get answeredAt => dateTime()();
+  TextColumn get scientificName => text()();
+  BoolColumn get correct => boolean()();
+
+  /// 'reference' (Commons recording) or 'own' (the user's saved clip).
+  TextColumn get source => text()();
+}
+
 /// A user photograph attached to a sighting. Only the file reference is
 /// stored; the image itself lives in app-managed storage.
 @DataClassName('SightingPhotoRow')
@@ -139,6 +152,9 @@ class EncyclopediaPacks extends Table {
   /// Comma-separated language codes, e.g. "en,ru".
   TextColumn get languages => text()();
   BoolColumn get withPhotos => boolean().withDefault(const Constant(true))();
+
+  /// Also download one reference recording per species (schema v4).
+  BoolColumn get withVoices => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
 }
 

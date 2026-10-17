@@ -8,7 +8,11 @@ class ListenButton extends StatefulWidget {
     required this.busy,
     required this.onPressed,
     this.level = 0,
+    this.compact = false,
   });
+
+  /// Smaller button (while listening), leaving room for the spectrogram.
+  final bool compact;
 
   final bool listening;
   final bool busy;
@@ -53,7 +57,15 @@ class _ListenButtonState extends State<ListenButton>
 
   @override
   Widget build(BuildContext context) {
-    const size = 168.0;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: widget.compact ? 116 : 168),
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+      builder: (context, size, _) => _button(context, size),
+    );
+  }
+
+  Widget _button(BuildContext context, double size) {
     final label = widget.listening ? 'Stop listening' : 'Start listening';
     return Semantics(
       button: true,
@@ -105,7 +117,7 @@ class _ListenButtonState extends State<ListenButton>
                                   widget.listening
                                       ? Icons.stop_rounded
                                       : Icons.mic_rounded,
-                                  size: 56,
+                                  size: size / 3,
                                   color: widget.listening
                                       ? const Color(0xFFB4673F)
                                       : const Color(0xFF2F5D3A),

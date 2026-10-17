@@ -16,6 +16,9 @@ import '../../shared/widgets/guide_description.dart';
 import '../progress/progress_widgets.dart';
 import '../progress/rarity.dart';
 import '../scanner/scanner_controller.dart';
+import '../../shared/widgets/reference_voices.dart';
+import '../../shared/widgets/species_extras.dart';
+import '../species_traits/meme_badge_widgets.dart';
 
 /// Details for a species heard in the current session, with Take Photo and
 /// Save Discovery.
@@ -173,6 +176,7 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
                   alignment: Alignment.centerLeft,
                   child: SpeciesRarityChip(species.scientificName),
                 ),
+                MemeBadgeRow(scientificName: species.scientificName),
                 const SizedBox(height: Space.md),
                 Wrap(
                   spacing: Space.sm,
@@ -215,6 +219,11 @@ class _BirdDetailsScreenState extends ConsumerState<BirdDetailsScreen> {
                     label: 'Best recording this session',
                     loadPath: () => _scanner.ensureClip(widget.speciesKey),
                   ),
+                ReferenceVoices(
+                  scientificName: species.scientificName,
+                  compareHint: group.hasAudio,
+                ),
+                SpeciesExtras(scientificName: species.scientificName),
                 SectionHeader(
                   group.isSaved ? 'Your photos' : 'Your photos (optional)',
                 ),

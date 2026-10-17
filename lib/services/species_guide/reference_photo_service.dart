@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
+import 'commons_http.dart';
 import 'species_guide.dart';
 
 /// Downloads species reference photos from Wikimedia Commons on demand and
@@ -60,10 +61,11 @@ class ReferencePhotoService {
     final ua = userAgent;
     if (ua == null) return null;
     try {
-      final res = await _getFollowingRedirects(
+      final res = await wikimediaGet(
+        _client,
         photo.thumbnailUri(width),
         ua,
-      ).timeout(const Duration(seconds: 20));
+      ).timeout(const Duration(seconds: 90));
       final type = res.headers['content-type'] ?? '';
       if (res.statusCode != 200 || !type.startsWith('image/')) {
         debugPrint(
@@ -80,26 +82,6 @@ class ReferencePhotoService {
       debugPrint('Reference photo ${photo.fileName}: $e');
       _failed.add(photo.fileName);
       return null;
-    }
-  }
-
-  /// GET that follows redirects itself: dart:io's automatic redirects drop
-  /// the custom User-Agent, and Commons answers that hop with HTTP 403.
-  Future<http.Response> _getFollowingRedirects(Uri uri, String ua) async {
-    var url = uri;
-    for (var hop = 0; ; hop++) {
-      final req = http.Request('GET', url)
-        ..followRedirects = false
-        ..headers['User-Agent'] = ua;
-      final res = await http.Response.fromStream(await _client.send(req));
-      final location = res.headers['location'];
-      if (location == null ||
-          res.statusCode < 300 ||
-          res.statusCode >= 400 ||
-          hop == 5) {
-        return res;
-      }
-      url = url.resolve(location);
     }
   }
 

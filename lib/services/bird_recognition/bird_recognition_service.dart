@@ -1,3 +1,4 @@
+import '../audio/spectrogram.dart';
 import 'prediction.dart';
 
 export 'prediction.dart';
@@ -29,6 +30,10 @@ abstract interface class BirdRecognitionService {
 
   /// Human-readable model name for attribution, e.g. "BirdNET+ V3.0".
   String get modelName;
+
+  /// Live spectrogram of what the recognizer hears, with detections pinned
+  /// to where they were heard. Cleared on every [start].
+  SpectrogramBuffer get spectrogram;
 
   /// Starts listening. Throws [MicrophonePermissionException] or
   /// [ModelNotInstalledException] when listening is not possible.

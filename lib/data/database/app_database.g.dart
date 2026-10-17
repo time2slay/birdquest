@@ -2841,6 +2841,21 @@ class $EncyclopediaPacksTable extends EncyclopediaPacks
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _withVoicesMeta = const VerificationMeta(
+    'withVoices',
+  );
+  @override
+  late final GeneratedColumn<bool> withVoices = GeneratedColumn<bool>(
+    'with_voices',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("with_voices" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2861,6 +2876,7 @@ class $EncyclopediaPacksTable extends EncyclopediaPacks
     radiusKm,
     languages,
     withPhotos,
+    withVoices,
     createdAt,
   ];
   @override
@@ -2924,6 +2940,12 @@ class $EncyclopediaPacksTable extends EncyclopediaPacks
         withPhotos.isAcceptableOrUnknown(data['with_photos']!, _withPhotosMeta),
       );
     }
+    if (data.containsKey('with_voices')) {
+      context.handle(
+        _withVoicesMeta,
+        withVoices.isAcceptableOrUnknown(data['with_voices']!, _withVoicesMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2969,6 +2991,10 @@ class $EncyclopediaPacksTable extends EncyclopediaPacks
         DriftSqlType.bool,
         data['${effectivePrefix}with_photos'],
       )!,
+      withVoices: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}with_voices'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2993,6 +3019,9 @@ class EncyclopediaPackRow extends DataClass
   /// Comma-separated language codes, e.g. "en,ru".
   final String languages;
   final bool withPhotos;
+
+  /// Also download one reference recording per species (schema v4).
+  final bool withVoices;
   final DateTime createdAt;
   const EncyclopediaPackRow({
     required this.id,
@@ -3002,6 +3031,7 @@ class EncyclopediaPackRow extends DataClass
     required this.radiusKm,
     required this.languages,
     required this.withPhotos,
+    required this.withVoices,
     required this.createdAt,
   });
   @override
@@ -3014,6 +3044,7 @@ class EncyclopediaPackRow extends DataClass
     map['radius_km'] = Variable<double>(radiusKm);
     map['languages'] = Variable<String>(languages);
     map['with_photos'] = Variable<bool>(withPhotos);
+    map['with_voices'] = Variable<bool>(withVoices);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -3027,6 +3058,7 @@ class EncyclopediaPackRow extends DataClass
       radiusKm: Value(radiusKm),
       languages: Value(languages),
       withPhotos: Value(withPhotos),
+      withVoices: Value(withVoices),
       createdAt: Value(createdAt),
     );
   }
@@ -3044,6 +3076,7 @@ class EncyclopediaPackRow extends DataClass
       radiusKm: serializer.fromJson<double>(json['radiusKm']),
       languages: serializer.fromJson<String>(json['languages']),
       withPhotos: serializer.fromJson<bool>(json['withPhotos']),
+      withVoices: serializer.fromJson<bool>(json['withVoices']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -3058,6 +3091,7 @@ class EncyclopediaPackRow extends DataClass
       'radiusKm': serializer.toJson<double>(radiusKm),
       'languages': serializer.toJson<String>(languages),
       'withPhotos': serializer.toJson<bool>(withPhotos),
+      'withVoices': serializer.toJson<bool>(withVoices),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -3070,6 +3104,7 @@ class EncyclopediaPackRow extends DataClass
     double? radiusKm,
     String? languages,
     bool? withPhotos,
+    bool? withVoices,
     DateTime? createdAt,
   }) => EncyclopediaPackRow(
     id: id ?? this.id,
@@ -3079,6 +3114,7 @@ class EncyclopediaPackRow extends DataClass
     radiusKm: radiusKm ?? this.radiusKm,
     languages: languages ?? this.languages,
     withPhotos: withPhotos ?? this.withPhotos,
+    withVoices: withVoices ?? this.withVoices,
     createdAt: createdAt ?? this.createdAt,
   );
   EncyclopediaPackRow copyWithCompanion(EncyclopediaPacksCompanion data) {
@@ -3092,6 +3128,9 @@ class EncyclopediaPackRow extends DataClass
       withPhotos: data.withPhotos.present
           ? data.withPhotos.value
           : this.withPhotos,
+      withVoices: data.withVoices.present
+          ? data.withVoices.value
+          : this.withVoices,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -3106,6 +3145,7 @@ class EncyclopediaPackRow extends DataClass
           ..write('radiusKm: $radiusKm, ')
           ..write('languages: $languages, ')
           ..write('withPhotos: $withPhotos, ')
+          ..write('withVoices: $withVoices, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3120,6 +3160,7 @@ class EncyclopediaPackRow extends DataClass
     radiusKm,
     languages,
     withPhotos,
+    withVoices,
     createdAt,
   );
   @override
@@ -3133,6 +3174,7 @@ class EncyclopediaPackRow extends DataClass
           other.radiusKm == this.radiusKm &&
           other.languages == this.languages &&
           other.withPhotos == this.withPhotos &&
+          other.withVoices == this.withVoices &&
           other.createdAt == this.createdAt);
 }
 
@@ -3144,6 +3186,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
   final Value<double> radiusKm;
   final Value<String> languages;
   final Value<bool> withPhotos;
+  final Value<bool> withVoices;
   final Value<DateTime> createdAt;
   const EncyclopediaPacksCompanion({
     this.id = const Value.absent(),
@@ -3153,6 +3196,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
     this.radiusKm = const Value.absent(),
     this.languages = const Value.absent(),
     this.withPhotos = const Value.absent(),
+    this.withVoices = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   EncyclopediaPacksCompanion.insert({
@@ -3163,6 +3207,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
     required double radiusKm,
     required String languages,
     this.withPhotos = const Value.absent(),
+    this.withVoices = const Value.absent(),
     required DateTime createdAt,
   }) : name = Value(name),
        latitude = Value(latitude),
@@ -3178,6 +3223,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
     Expression<double>? radiusKm,
     Expression<String>? languages,
     Expression<bool>? withPhotos,
+    Expression<bool>? withVoices,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -3188,6 +3234,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
       if (radiusKm != null) 'radius_km': radiusKm,
       if (languages != null) 'languages': languages,
       if (withPhotos != null) 'with_photos': withPhotos,
+      if (withVoices != null) 'with_voices': withVoices,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -3200,6 +3247,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
     Value<double>? radiusKm,
     Value<String>? languages,
     Value<bool>? withPhotos,
+    Value<bool>? withVoices,
     Value<DateTime>? createdAt,
   }) {
     return EncyclopediaPacksCompanion(
@@ -3210,6 +3258,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
       radiusKm: radiusKm ?? this.radiusKm,
       languages: languages ?? this.languages,
       withPhotos: withPhotos ?? this.withPhotos,
+      withVoices: withVoices ?? this.withVoices,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -3238,6 +3287,9 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
     if (withPhotos.present) {
       map['with_photos'] = Variable<bool>(withPhotos.value);
     }
+    if (withVoices.present) {
+      map['with_voices'] = Variable<bool>(withVoices.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3254,6 +3306,7 @@ class EncyclopediaPacksCompanion extends UpdateCompanion<EncyclopediaPackRow> {
           ..write('radiusKm: $radiusKm, ')
           ..write('languages: $languages, ')
           ..write('withPhotos: $withPhotos, ')
+          ..write('withVoices: $withVoices, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3859,6 +3912,369 @@ class QuestCompletionsCompanion extends UpdateCompanion<QuestCompletionRow> {
   }
 }
 
+class $QuizAnswersTable extends QuizAnswers
+    with TableInfo<$QuizAnswersTable, QuizAnswerRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $QuizAnswersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _answeredAtMeta = const VerificationMeta(
+    'answeredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> answeredAt = GeneratedColumn<DateTime>(
+    'answered_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scientificNameMeta = const VerificationMeta(
+    'scientificName',
+  );
+  @override
+  late final GeneratedColumn<String> scientificName = GeneratedColumn<String>(
+    'scientific_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _correctMeta = const VerificationMeta(
+    'correct',
+  );
+  @override
+  late final GeneratedColumn<bool> correct = GeneratedColumn<bool>(
+    'correct',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("correct" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    answeredAt,
+    scientificName,
+    correct,
+    source,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'quiz_answers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<QuizAnswerRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('answered_at')) {
+      context.handle(
+        _answeredAtMeta,
+        answeredAt.isAcceptableOrUnknown(data['answered_at']!, _answeredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_answeredAtMeta);
+    }
+    if (data.containsKey('scientific_name')) {
+      context.handle(
+        _scientificNameMeta,
+        scientificName.isAcceptableOrUnknown(
+          data['scientific_name']!,
+          _scientificNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scientificNameMeta);
+    }
+    if (data.containsKey('correct')) {
+      context.handle(
+        _correctMeta,
+        correct.isAcceptableOrUnknown(data['correct']!, _correctMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_correctMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  QuizAnswerRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return QuizAnswerRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      answeredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}answered_at'],
+      )!,
+      scientificName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scientific_name'],
+      )!,
+      correct: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}correct'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+    );
+  }
+
+  @override
+  $QuizAnswersTable createAlias(String alias) {
+    return $QuizAnswersTable(attachedDatabase, alias);
+  }
+}
+
+class QuizAnswerRow extends DataClass implements Insertable<QuizAnswerRow> {
+  final int id;
+  final DateTime answeredAt;
+  final String scientificName;
+  final bool correct;
+
+  /// 'reference' (Commons recording) or 'own' (the user's saved clip).
+  final String source;
+  const QuizAnswerRow({
+    required this.id,
+    required this.answeredAt,
+    required this.scientificName,
+    required this.correct,
+    required this.source,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['answered_at'] = Variable<DateTime>(answeredAt);
+    map['scientific_name'] = Variable<String>(scientificName);
+    map['correct'] = Variable<bool>(correct);
+    map['source'] = Variable<String>(source);
+    return map;
+  }
+
+  QuizAnswersCompanion toCompanion(bool nullToAbsent) {
+    return QuizAnswersCompanion(
+      id: Value(id),
+      answeredAt: Value(answeredAt),
+      scientificName: Value(scientificName),
+      correct: Value(correct),
+      source: Value(source),
+    );
+  }
+
+  factory QuizAnswerRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return QuizAnswerRow(
+      id: serializer.fromJson<int>(json['id']),
+      answeredAt: serializer.fromJson<DateTime>(json['answeredAt']),
+      scientificName: serializer.fromJson<String>(json['scientificName']),
+      correct: serializer.fromJson<bool>(json['correct']),
+      source: serializer.fromJson<String>(json['source']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'answeredAt': serializer.toJson<DateTime>(answeredAt),
+      'scientificName': serializer.toJson<String>(scientificName),
+      'correct': serializer.toJson<bool>(correct),
+      'source': serializer.toJson<String>(source),
+    };
+  }
+
+  QuizAnswerRow copyWith({
+    int? id,
+    DateTime? answeredAt,
+    String? scientificName,
+    bool? correct,
+    String? source,
+  }) => QuizAnswerRow(
+    id: id ?? this.id,
+    answeredAt: answeredAt ?? this.answeredAt,
+    scientificName: scientificName ?? this.scientificName,
+    correct: correct ?? this.correct,
+    source: source ?? this.source,
+  );
+  QuizAnswerRow copyWithCompanion(QuizAnswersCompanion data) {
+    return QuizAnswerRow(
+      id: data.id.present ? data.id.value : this.id,
+      answeredAt: data.answeredAt.present
+          ? data.answeredAt.value
+          : this.answeredAt,
+      scientificName: data.scientificName.present
+          ? data.scientificName.value
+          : this.scientificName,
+      correct: data.correct.present ? data.correct.value : this.correct,
+      source: data.source.present ? data.source.value : this.source,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuizAnswerRow(')
+          ..write('id: $id, ')
+          ..write('answeredAt: $answeredAt, ')
+          ..write('scientificName: $scientificName, ')
+          ..write('correct: $correct, ')
+          ..write('source: $source')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, answeredAt, scientificName, correct, source);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is QuizAnswerRow &&
+          other.id == this.id &&
+          other.answeredAt == this.answeredAt &&
+          other.scientificName == this.scientificName &&
+          other.correct == this.correct &&
+          other.source == this.source);
+}
+
+class QuizAnswersCompanion extends UpdateCompanion<QuizAnswerRow> {
+  final Value<int> id;
+  final Value<DateTime> answeredAt;
+  final Value<String> scientificName;
+  final Value<bool> correct;
+  final Value<String> source;
+  const QuizAnswersCompanion({
+    this.id = const Value.absent(),
+    this.answeredAt = const Value.absent(),
+    this.scientificName = const Value.absent(),
+    this.correct = const Value.absent(),
+    this.source = const Value.absent(),
+  });
+  QuizAnswersCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime answeredAt,
+    required String scientificName,
+    required bool correct,
+    required String source,
+  }) : answeredAt = Value(answeredAt),
+       scientificName = Value(scientificName),
+       correct = Value(correct),
+       source = Value(source);
+  static Insertable<QuizAnswerRow> custom({
+    Expression<int>? id,
+    Expression<DateTime>? answeredAt,
+    Expression<String>? scientificName,
+    Expression<bool>? correct,
+    Expression<String>? source,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (answeredAt != null) 'answered_at': answeredAt,
+      if (scientificName != null) 'scientific_name': scientificName,
+      if (correct != null) 'correct': correct,
+      if (source != null) 'source': source,
+    });
+  }
+
+  QuizAnswersCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? answeredAt,
+    Value<String>? scientificName,
+    Value<bool>? correct,
+    Value<String>? source,
+  }) {
+    return QuizAnswersCompanion(
+      id: id ?? this.id,
+      answeredAt: answeredAt ?? this.answeredAt,
+      scientificName: scientificName ?? this.scientificName,
+      correct: correct ?? this.correct,
+      source: source ?? this.source,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (answeredAt.present) {
+      map['answered_at'] = Variable<DateTime>(answeredAt.value);
+    }
+    if (scientificName.present) {
+      map['scientific_name'] = Variable<String>(scientificName.value);
+    }
+    if (correct.present) {
+      map['correct'] = Variable<bool>(correct.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuizAnswersCompanion(')
+          ..write('id: $id, ')
+          ..write('answeredAt: $answeredAt, ')
+          ..write('scientificName: $scientificName, ')
+          ..write('correct: $correct, ')
+          ..write('source: $source')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3876,6 +4292,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $QuestCompletionsTable questCompletions = $QuestCompletionsTable(
     this,
   );
+  late final $QuizAnswersTable quizAnswers = $QuizAnswersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3890,6 +4307,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     encyclopediaPacks,
     encyclopediaPackSpecies,
     questCompletions,
+    quizAnswers,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -6585,6 +7003,7 @@ typedef $$EncyclopediaPacksTableCreateCompanionBuilder =
       required double radiusKm,
       required String languages,
       Value<bool> withPhotos,
+      Value<bool> withVoices,
       required DateTime createdAt,
     });
 typedef $$EncyclopediaPacksTableUpdateCompanionBuilder =
@@ -6596,6 +7015,7 @@ typedef $$EncyclopediaPacksTableUpdateCompanionBuilder =
       Value<double> radiusKm,
       Value<String> languages,
       Value<bool> withPhotos,
+      Value<bool> withVoices,
       Value<DateTime> createdAt,
     });
 
@@ -6682,6 +7102,11 @@ class $$EncyclopediaPacksTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get withVoices => $composableBuilder(
+    column: $table.withVoices,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -6758,6 +7183,11 @@ class $$EncyclopediaPacksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get withVoices => $composableBuilder(
+    column: $table.withVoices,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6793,6 +7223,11 @@ class $$EncyclopediaPacksTableAnnotationComposer
 
   GeneratedColumn<bool> get withPhotos => $composableBuilder(
     column: $table.withPhotos,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get withVoices => $composableBuilder(
+    column: $table.withVoices,
     builder: (column) => column,
   );
 
@@ -6867,6 +7302,7 @@ class $$EncyclopediaPacksTableTableManager
                 Value<double> radiusKm = const Value.absent(),
                 Value<String> languages = const Value.absent(),
                 Value<bool> withPhotos = const Value.absent(),
+                Value<bool> withVoices = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => EncyclopediaPacksCompanion(
                 id: id,
@@ -6876,6 +7312,7 @@ class $$EncyclopediaPacksTableTableManager
                 radiusKm: radiusKm,
                 languages: languages,
                 withPhotos: withPhotos,
+                withVoices: withVoices,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -6887,6 +7324,7 @@ class $$EncyclopediaPacksTableTableManager
                 required double radiusKm,
                 required String languages,
                 Value<bool> withPhotos = const Value.absent(),
+                Value<bool> withVoices = const Value.absent(),
                 required DateTime createdAt,
               }) => EncyclopediaPacksCompanion.insert(
                 id: id,
@@ -6896,6 +7334,7 @@ class $$EncyclopediaPacksTableTableManager
                 radiusKm: radiusKm,
                 languages: languages,
                 withPhotos: withPhotos,
+                withVoices: withVoices,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -7474,6 +7913,213 @@ typedef $$QuestCompletionsTableProcessedTableManager =
       QuestCompletionRow,
       PrefetchHooks Function()
     >;
+typedef $$QuizAnswersTableCreateCompanionBuilder =
+    QuizAnswersCompanion Function({
+      Value<int> id,
+      required DateTime answeredAt,
+      required String scientificName,
+      required bool correct,
+      required String source,
+    });
+typedef $$QuizAnswersTableUpdateCompanionBuilder =
+    QuizAnswersCompanion Function({
+      Value<int> id,
+      Value<DateTime> answeredAt,
+      Value<String> scientificName,
+      Value<bool> correct,
+      Value<String> source,
+    });
+
+class $$QuizAnswersTableFilterComposer
+    extends Composer<_$AppDatabase, $QuizAnswersTable> {
+  $$QuizAnswersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get answeredAt => $composableBuilder(
+    column: $table.answeredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get correct => $composableBuilder(
+    column: $table.correct,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$QuizAnswersTableOrderingComposer
+    extends Composer<_$AppDatabase, $QuizAnswersTable> {
+  $$QuizAnswersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get answeredAt => $composableBuilder(
+    column: $table.answeredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get correct => $composableBuilder(
+    column: $table.correct,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$QuizAnswersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $QuizAnswersTable> {
+  $$QuizAnswersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get answeredAt => $composableBuilder(
+    column: $table.answeredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get scientificName => $composableBuilder(
+    column: $table.scientificName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get correct =>
+      $composableBuilder(column: $table.correct, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+}
+
+class $$QuizAnswersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $QuizAnswersTable,
+          QuizAnswerRow,
+          $$QuizAnswersTableFilterComposer,
+          $$QuizAnswersTableOrderingComposer,
+          $$QuizAnswersTableAnnotationComposer,
+          $$QuizAnswersTableCreateCompanionBuilder,
+          $$QuizAnswersTableUpdateCompanionBuilder,
+          (
+            QuizAnswerRow,
+            BaseReferences<_$AppDatabase, $QuizAnswersTable, QuizAnswerRow>,
+          ),
+          QuizAnswerRow,
+          PrefetchHooks Function()
+        > {
+  $$QuizAnswersTableTableManager(_$AppDatabase db, $QuizAnswersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$QuizAnswersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$QuizAnswersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$QuizAnswersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> answeredAt = const Value.absent(),
+                Value<String> scientificName = const Value.absent(),
+                Value<bool> correct = const Value.absent(),
+                Value<String> source = const Value.absent(),
+              }) => QuizAnswersCompanion(
+                id: id,
+                answeredAt: answeredAt,
+                scientificName: scientificName,
+                correct: correct,
+                source: source,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required DateTime answeredAt,
+                required String scientificName,
+                required bool correct,
+                required String source,
+              }) => QuizAnswersCompanion.insert(
+                id: id,
+                answeredAt: answeredAt,
+                scientificName: scientificName,
+                correct: correct,
+                source: source,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$QuizAnswersTable, QuizAnswerRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $QuizAnswersTable,
+                    QuizAnswerRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$QuizAnswersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $QuizAnswersTable,
+      QuizAnswerRow,
+      $$QuizAnswersTableFilterComposer,
+      $$QuizAnswersTableOrderingComposer,
+      $$QuizAnswersTableAnnotationComposer,
+      $$QuizAnswersTableCreateCompanionBuilder,
+      $$QuizAnswersTableUpdateCompanionBuilder,
+      (
+        QuizAnswerRow,
+        BaseReferences<_$AppDatabase, $QuizAnswersTable, QuizAnswerRow>,
+      ),
+      QuizAnswerRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7499,4 +8145,6 @@ class $AppDatabaseManager {
       );
   $$QuestCompletionsTableTableManager get questCompletions =>
       $$QuestCompletionsTableTableManager(_db, _db.questCompletions);
+  $$QuizAnswersTableTableManager get quizAnswers =>
+      $$QuizAnswersTableTableManager(_db, _db.quizAnswers);
 }

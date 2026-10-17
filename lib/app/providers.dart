@@ -22,8 +22,10 @@ import '../services/bird_recognition/demo_service.dart';
 import '../services/bird_recognition/model_manager.dart';
 import '../services/location_service.dart';
 import '../services/species_guide/reference_photo_service.dart';
+import '../services/species_guide/reference_voice_service.dart';
 import '../services/species_guide/species_guide.dart';
 import '../services/species_guide/wikipedia_client.dart';
+import '../data/repositories/quiz_repository.dart';
 
 /// Filesystem locations used by the app. Resolved once in `main`.
 class AppPaths {
@@ -45,6 +47,10 @@ class AppPaths {
   /// Cached Wikimedia Commons reference photos.
   Directory get speciesPhotosDir =>
       Directory(p.join(modelsDir.parent.path, 'species_photos'));
+
+  /// Cached Wikimedia Commons reference recordings.
+  Directory get speciesVoicesDir =>
+      Directory(p.join(modelsDir.parent.path, 'species_voices'));
 
   static Future<AppPaths> resolve() async {
     final docs = await getApplicationDocumentsDirectory();
@@ -212,6 +218,15 @@ final referencePhotoProvider =
       return file == null ? null : (file: file, photo: photo);
     });
 
+final referenceVoiceServiceProvider = Provider<ReferenceVoiceService>((ref) {
+  final service = ReferenceVoiceService(
+    ref.watch(appPathsProvider).speciesVoicesDir,
+    userAgent: ref.watch(wikimediaUserAgentProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
+});
+
 final wikipediaClientProvider = Provider<WikipediaClient>((ref) {
   final client = WikipediaClient(
     userAgent: ref.watch(wikimediaUserAgentProvider),
@@ -341,4 +356,12 @@ final locatedSightingsProvider = StreamProvider<List<LocatedSighting>>(
 final encounterProvider = StreamProvider.family<Encounter?, int>(
   (ref, sightingId) =>
       ref.watch(sightingRepositoryProvider).watchEncounter(sightingId),
+);
+
+final quizRepositoryProvider = Provider<QuizRepository>(
+  (ref) => QuizRepository(ref.watch(databaseProvider)),
+);
+
+final quizAnswersProvider = StreamProvider<List<QuizAnswer>>(
+  (ref) => ref.watch(quizRepositoryProvider).watchAnswers(),
 );

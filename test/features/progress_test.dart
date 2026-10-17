@@ -90,6 +90,51 @@ void main() {
       expect(copy.rarityOf('Unknownus avis'), isNull);
       expect(copy.species['Turdus merula']!.mean, closeTo(0.98, 1e-9));
     });
+
+    test('a full year keeps monthly values through the cache', () {
+      final labels = [_label('Hirundo rustica')];
+      SpeciesRange range(double p) => SpeciesRange.fromScores(
+        context: const GeoContext(latitude: 52.5, longitude: 13.4, week: 1),
+        probabilities: [p],
+        geoLabels: const ['Hirundo rustica'],
+        audioLabels: labels,
+      );
+      // A summer visitor: absent in winter, peaks in June.
+      const year = [
+        0.0,
+        0.0,
+        0.1,
+        0.4,
+        0.8,
+        0.9,
+        0.85,
+        0.7,
+        0.4,
+        0.1,
+        0.0,
+        0.0,
+      ];
+      final profile = RegionProfile.fromRanges(
+        latitude: 52.5,
+        longitude: 13.4,
+        ranges: [for (final p in year) range(p)],
+        labels: labels,
+      );
+      final swallow = profile.species['Hirundo rustica']!;
+      expect(swallow.monthly, year);
+      final copy = RegionProfile.fromJson(profile.toJson());
+      expect(copy.species['Hirundo rustica']!.monthly, year);
+      // A profile cached before seasonality (4-field rows) still loads.
+      final old = RegionProfile.fromJson({
+        'lat': 1,
+        'lon': 2,
+        'species': [
+          ['Hirundo rustica', 'Barn Swallow', 'Passeriformes', 0.4],
+        ],
+        'unknown': [],
+      });
+      expect(old.species['Hirundo rustica']!.monthly, isEmpty);
+    });
   });
 
   group('XP and levels', () {
@@ -252,12 +297,18 @@ void main() {
           await tester.runAsync(
             () => Future<void>.delayed(const Duration(milliseconds: 30)),
           );
-          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 50));
         }
       }
 
       Future<List<QuestCompletionRow>> completions() async =>
           (await tester.runAsync(() => db.select(db.questCompletions).get()))!;
+
+      // Let the starting level load first: gains are announced relative to it.
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SizedBox)),
+      );
+      await settle(() => container.read(playerLevelProvider) != null);
 
       for (final species in [blackbird, robin]) {
         await tester.runAsync(
@@ -336,7 +387,7 @@ void main() {
       expect(computed, 1);
       await n.ensureNear(48.1, 11.6); // Munich
       expect(computed, 2);
-      expect(prefs.getString('region_profile_v1'), contains('48.1'));
+      expect(prefs.getString('region_profile_v2'), contains('48.1'));
 
       final reloaded = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],

@@ -324,6 +324,7 @@ void main() {
       await v1.customStatement('DROP TABLE encyclopedia_packs');
       await v1.customStatement('DROP TABLE guide_descriptions');
       await v1.customStatement('DROP TABLE quest_completions');
+      await v1.customStatement('DROP TABLE quiz_answers');
       await v1.customStatement('ALTER TABLE sightings DROP COLUMN rarity');
       await v1.customStatement('PRAGMA user_version = 1');
       await v1.close();
@@ -345,10 +346,55 @@ void main() {
       // v3: rarity column and quest table exist after the upgrade.
       await upgraded.customSelect('SELECT rarity FROM sightings').get();
       expect(await upgraded.select(upgraded.questCompletions).get(), isEmpty);
+      // v4: quiz answers table.
+      expect(await upgraded.select(upgraded.quizAnswers).get(), isEmpty);
       await upgraded.close();
       dir.deleteSync(recursive: true);
     },
   );
+
+  test('migrating a v3 database keeps areas and adds voices + quiz', () async {
+    final dir = Directory.systemTemp.createTempSync('birdquest_mig3_');
+    final file = File('${dir.path}/db.sqlite');
+    final v3 = AppDatabase(NativeDatabase(file));
+    final repo3 = GuideRepository(
+      v3,
+      WikipediaClient(client: MockClient((_) async => http.Response('', 500))),
+    );
+    await repo3.createPack(
+      name: 'Home',
+      latitude: 1,
+      longitude: 2,
+      radiusKm: 25,
+      languages: const [GuideLanguage.en],
+      withPhotos: true,
+      species: const [
+        EncyclopediaSpecies(
+          scientificName: 'Turdus merula',
+          commonName: 'Common Blackbird',
+        ),
+      ],
+    );
+    await v3.customStatement('DROP TABLE quiz_answers');
+    await v3.customStatement(
+      'ALTER TABLE encyclopedia_packs DROP COLUMN with_voices',
+    );
+    await v3.customStatement('PRAGMA user_version = 3');
+    await v3.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    final repo = GuideRepository(
+      upgraded,
+      WikipediaClient(client: MockClient((_) async => http.Response('', 500))),
+    );
+    final pack = (await repo.watchPacks().first).single;
+    expect(pack.name, 'Home');
+    expect(pack.speciesCount, 1);
+    expect(pack.withVoices, isFalse, reason: 'old areas had no voices');
+    expect(await upgraded.select(upgraded.quizAnswers).get(), isEmpty);
+    await upgraded.close();
+    dir.deleteSync(recursive: true);
+  });
 }
 
 extension on AppDatabase {

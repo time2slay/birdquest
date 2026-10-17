@@ -30,6 +30,7 @@ class _EncyclopediaDownloadScreenState
   double _radiusKm = 100;
   late final Set<GuideLanguage> _langs = {ref.read(guideLanguageProvider)};
   bool _photos = true;
+  bool _voices = false;
   bool _located = false;
 
   @override
@@ -71,6 +72,7 @@ class _EncyclopediaDownloadScreenState
     radiusKm: _radiusKm,
     languages: GuideLanguage.values.where(_langs.contains).toList(),
     withPhotos: _photos,
+    withVoices: _voices,
   );
 
   @override
@@ -93,6 +95,8 @@ class _EncyclopediaDownloadScreenState
                     : 'Downloaded ${next.speciesCount} species',
                 if (next.failedPhotos > 0)
                   failedPhotosText(next.failedPhotos, ru: ru),
+                if (next.failedVoices > 0)
+                  failedVoicesText(next.failedVoices, ru: ru),
               ].join('. '),
             ),
           ),
@@ -230,6 +234,24 @@ class _EncyclopediaDownloadScreenState
                         : 'One photo per species from Wikimedia Commons',
                   ),
                 ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _voices,
+                  onChanged: busy
+                      ? null
+                      : (v) {
+                          setState(() => _voices = v);
+                          controller.reset();
+                        },
+                  title: Text(ru ? 'Голоса' : 'Voices'),
+                  subtitle: Text(
+                    ru
+                        ? 'Одна эталонная запись на вид (~0,7 МБ), для '
+                              'прослушивания и викторины офлайн'
+                        : 'One reference recording per species (~0.7 MB), '
+                              'for listening and the quiz offline',
+                  ),
+                ),
                 TextField(
                   controller: _name,
                   enabled: !busy,
@@ -243,6 +265,7 @@ class _EncyclopediaDownloadScreenState
                 const SizedBox(height: Space.lg),
                 _JobPanel(
                   job: job,
+                  guide: ref.watch(speciesGuideProvider).value,
                   ru: ru,
                   onFind: () => controller.preview(_request()),
                   onDownload: controller.download,
@@ -261,6 +284,7 @@ class _EncyclopediaDownloadScreenState
 class _JobPanel extends StatelessWidget {
   const _JobPanel({
     required this.job,
+    required this.guide,
     required this.ru,
     required this.onFind,
     required this.onDownload,
@@ -268,10 +292,25 @@ class _JobPanel extends StatelessWidget {
   });
 
   final EncyclopediaJob job;
+
+  /// For the size estimate (how many species have a recording).
+  final SpeciesGuide? guide;
   final bool ru;
   final VoidCallback onFind;
   final VoidCallback onDownload;
   final VoidCallback onCancel;
+
+  String _mb(EncyclopediaRequest request, Iterable<String> species) {
+    final g = guide;
+    final withVoice = g == null
+        ? 0
+        : species.where((s) => g[s]?.voices.isNotEmpty ?? false).length;
+    final bytes = request.estimateBytes(
+      species.length,
+      withVoiceCount: withVoice,
+    );
+    return (bytes / 1e6).toStringAsFixed(0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -296,9 +335,9 @@ class _JobPanel extends StatelessWidget {
           Text(
             ru
                 ? '${species.length} видов птиц · около '
-                      '${(request.estimateBytes(species.length) / 1e6).toStringAsFixed(0)} МБ'
+                      '${_mb(request, species.map((x) => x.scientificName))} МБ'
                 : '${species.length} bird species · about '
-                      '${(request.estimateBytes(species.length) / 1e6).toStringAsFixed(0)} MB',
+                      '${_mb(request, species.map((x) => x.scientificName))} MB',
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: Space.xs),

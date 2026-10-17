@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../services/bird_recognition/model_manager.dart';
 import '../../shared/theme/tokens.dart';
+import '../export/export_sheet.dart';
 
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
@@ -199,6 +200,19 @@ class AboutScreen extends ConsumerWidget {
             onPressed: () =>
                 showLicensePage(context: context, applicationName: 'BirdQuest'),
             child: const Text('Open-source licenses'),
+          ),
+          const SizedBox(height: Space.xl),
+          Text('Your data', style: theme.textTheme.titleLarge),
+          const SizedBox(height: Space.sm),
+          const Text(
+            'Export your encounters as a CSV spreadsheet, GPX waypoints or '
+            'an eBird import file. Demo encounters are left out.',
+          ),
+          const SizedBox(height: Space.sm),
+          FilledButton.tonalIcon(
+            onPressed: () => showExportSheet(context),
+            icon: const Icon(Icons.file_download_outlined),
+            label: const Text('Export collection'),
           ),
           const SizedBox(height: Space.xl),
           Text('Demo data', style: theme.textTheme.titleLarge),

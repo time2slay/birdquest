@@ -17,6 +17,7 @@ import '../features/progress/progress_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/sightings/encounter_detail_screen.dart';
 import '../features/sightings/species_history_screen.dart';
+import '../features/quiz/quiz_screen.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
@@ -105,6 +106,11 @@ GoRouter buildRouter({required bool Function() needsOnboarding}) => GoRouter(
         scientificName: s.pathParameters['sci']!,
         fallbackName: s.uri.queryParameters['name'],
       ),
+    ),
+    GoRoute(
+      path: '/quiz',
+      parentNavigatorKey: _rootKey,
+      builder: (_, _) => const QuizScreen(),
     ),
     GoRoute(
       path: '/achievements',

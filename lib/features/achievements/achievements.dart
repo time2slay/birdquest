@@ -29,6 +29,7 @@ class AchievementStats {
     this.legendarySpecies = 0,
     this.questsCompleted = 0,
     this.longestQuestStreak = 0,
+    this.quizCorrect = 0,
   });
 
   static const empty = AchievementStats(
@@ -65,10 +66,14 @@ class AchievementStats {
   final int questsCompleted;
   final int longestQuestStreak;
 
+  /// Correct answers in the voice quiz, all time.
+  final int quizCorrect;
+
   factory AchievementStats.compute(
     List<SightingFact> facts,
     int photos, {
     List<QuestCompletion> quests = const [],
+    int quizCorrect = 0,
   }) {
     Set<int> speciesInOrders(Set<String> orders) => {
       for (final f in facts)
@@ -122,6 +127,7 @@ class AchievementStats {
       }.length,
       questsCompleted: quests.length,
       longestQuestStreak: longestDayStreak(questDays),
+      quizCorrect: quizCorrect,
     );
   }
 }
@@ -355,6 +361,18 @@ final achievementCatalog = <Achievement>[
     target: 7,
     measure: (s) => s.longestQuestStreak,
   ),
+  for (final n in const [25, 100, 500])
+    Achievement(
+      id: 'quiz_$n',
+      icon: Icons.quiz_rounded,
+      title: (en: 'Voice expert · $n', ru: 'Знаток голосов · $n'),
+      description: (
+        en: 'Guess $n birds by voice in the quiz',
+        ru: 'Угадайте $n птиц по голосу в викторине',
+      ),
+      target: n,
+      measure: (s) => s.quizCorrect,
+    ),
 ];
 
 class AchievementProgress {
@@ -377,8 +395,16 @@ final achievementStatsProvider = Provider<AchievementStats?>((ref) {
   final facts = ref.watch(sightingFactsProvider).value;
   final photos = ref.watch(_realPhotoCountProvider).value;
   final quests = ref.watch(questCompletionsProvider).value;
-  if (facts == null || photos == null || quests == null) return null;
-  return AchievementStats.compute(facts, photos, quests: quests);
+  final quiz = ref.watch(quizAnswersProvider).value;
+  if (facts == null || photos == null || quests == null || quiz == null) {
+    return null;
+  }
+  return AchievementStats.compute(
+    facts,
+    photos,
+    quests: quests,
+    quizCorrect: quiz.where((a) => a.correct).length,
+  );
 });
 
 /// Remembers when each achievement was first unlocked (local only).

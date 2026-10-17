@@ -229,6 +229,7 @@ class SightingRepository {
           longitude: sightings[id]!.longitude,
           notes: sightings[id]!.userNotes,
           isDemo: sightings[id]!.isDemo,
+          rarity: sightings[id]!.rarity,
           photos: photos[id]!,
         ),
     ];
@@ -298,6 +299,35 @@ class SightingRepository {
             ),
         ],
       );
+
+  /// Every real (non-demo) sighting with what an export needs, oldest first.
+  Future<List<ExportRow>> exportRows() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT s.confirmed_at, sp.scientific_name, sp.common_name, '
+          's.latitude, s.longitude, s.rarity, s.model_score, s.user_notes, '
+          '(SELECT COUNT(*) FROM sighting_photos p WHERE p.sighting_id = s.id) '
+          'AS photos '
+          'FROM sightings s JOIN species sp ON sp.id = s.species_id '
+          'WHERE s.is_demo = 0 ORDER BY s.confirmed_at',
+          readsFrom: {_db.sightings, _db.species, _db.sightingPhotos},
+        )
+        .get();
+    return [
+      for (final r in rows)
+        ExportRow(
+          confirmedAt: r.read<DateTime>('confirmed_at'),
+          scientificName: r.read<String>('scientific_name'),
+          commonName: r.read<String>('common_name'),
+          latitude: r.readNullable<double>('latitude'),
+          longitude: r.readNullable<double>('longitude'),
+          rarity: r.readNullable<String>('rarity'),
+          modelScore: r.readNullable<double>('model_score'),
+          notes: r.readNullable<String>('user_notes'),
+          photoCount: r.read<int>('photos'),
+        ),
+    ];
+  }
 
   /// Number of photos attached to real (non-demo) sightings.
   Stream<int> watchRealPhotoCount() => _db

@@ -36,6 +36,7 @@ class _EncyclopediaScreenState extends ConsumerState<EncyclopediaScreen> {
       if (next is JobDone &&
           next.updated &&
           next.failedPhotos == 0 &&
+          next.failedVoices == 0 &&
           context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(ru ? 'Область обновлена' : 'Area updated')),
@@ -62,6 +63,11 @@ class _EncyclopediaScreenState extends ConsumerState<EncyclopediaScreen> {
       appBar: AppBar(
         title: Text(ru ? 'Энциклопедия' : 'Encyclopedia'),
         actions: [
+          IconButton(
+            tooltip: ru ? 'Угадай по голосу' : 'Guess by voice',
+            icon: const Icon(Icons.quiz_outlined),
+            onPressed: () => context.push('/quiz'),
+          ),
           const ThemeToggleButton(),
           if (packs.isNotEmpty)
             IconButton(
@@ -320,11 +326,15 @@ class _JobStatus extends ConsumerWidget {
             ),
           ],
         ),
-      JobDone(:final packId, :final failedPhotos) when failedPhotos > 0 =>
+      JobDone(:final packId, :final failedPhotos, :final failedVoices)
+          when failedPhotos > 0 || failedVoices > 0 =>
         NoticeCard(
-          icon: Icons.image_not_supported_outlined,
+          icon: Icons.cloud_off_rounded,
           title: packOf(packId)?.name ?? (ru ? 'Область' : 'Area'),
-          message: failedPhotosText(failedPhotos, ru: ru),
+          message: [
+            if (failedPhotos > 0) failedPhotosText(failedPhotos, ru: ru),
+            if (failedVoices > 0) failedVoicesText(failedVoices, ru: ru),
+          ].join('. '),
           actions: [actions(packOf(packId))],
         ),
       JobFailed(:final packId?, :final message) => NoticeCard(

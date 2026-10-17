@@ -15,6 +15,7 @@ import '../../shared/widgets/common.dart';
 import '../../shared/widgets/guide_description.dart';
 import '../../shared/widgets/theme_toggle.dart';
 import 'cover_picker.dart';
+import '../export/export_sheet.dart';
 
 class CollectionScreen extends ConsumerWidget {
   const CollectionScreen({super.key});
@@ -33,6 +34,11 @@ class CollectionScreen extends ConsumerWidget {
             tooltip: 'Achievements',
             icon: const Icon(Icons.emoji_events_outlined),
             onPressed: () => context.push('/achievements'),
+          ),
+          IconButton(
+            tooltip: 'Export',
+            icon: const Icon(Icons.file_download_outlined),
+            onPressed: () => showExportSheet(context),
           ),
           const ThemeToggleButton(),
         ],

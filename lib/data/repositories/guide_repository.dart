@@ -30,6 +30,7 @@ class EncyclopediaPack {
     required this.radiusKm,
     required this.languages,
     required this.withPhotos,
+    this.withVoices = false,
     required this.speciesCount,
     required this.createdAt,
   });
@@ -41,6 +42,9 @@ class EncyclopediaPack {
   final double radiusKm;
   final List<GuideLanguage> languages;
   final bool withPhotos;
+
+  /// Also keeps one reference recording per species offline.
+  final bool withVoices;
   final int speciesCount;
   final DateTime createdAt;
 }
@@ -183,6 +187,7 @@ class GuideRepository {
     required double radiusKm,
     required List<GuideLanguage> languages,
     required bool withPhotos,
+    bool withVoices = false,
     required List<EncyclopediaSpecies> species,
   }) => _db.transaction(() async {
     final id = await _db
@@ -195,6 +200,7 @@ class GuideRepository {
             radiusKm: radiusKm,
             languages: languages.map((l) => l.name).join(','),
             withPhotos: Value(withPhotos),
+            withVoices: Value(withVoices),
             createdAt: DateTime.now(),
           ),
         );
@@ -261,6 +267,7 @@ class GuideRepository {
                   if (code.isNotEmpty) GuideLanguage.values.byName(code),
               ],
               withPhotos: p.withPhotos,
+              withVoices: p.withVoices,
               speciesCount: r.read(count) ?? 0,
               createdAt: p.createdAt,
             );

@@ -5,6 +5,9 @@ import 'package:birdquest/data/database/app_database.dart';
 import 'package:birdquest/data/models.dart';
 import 'package:birdquest/data/repositories/sighting_repository.dart';
 import 'package:birdquest/features/collection/collection_screen.dart';
+import 'package:birdquest/features/progress/rarity.dart';
+import 'package:birdquest/features/quiz/quiz_screen.dart';
+import 'package:birdquest/features/sightings/share_card.dart';
 import 'package:birdquest/features/scanner/scanner_screen.dart';
 import 'package:birdquest/services/bird_recognition/model_manager.dart';
 import 'package:birdquest/services/species_guide/species_guide.dart';
@@ -13,6 +16,7 @@ import 'package:birdquest/shared/widgets/theme_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers.dart';
@@ -22,6 +26,9 @@ void main() {
   late Directory root;
   late AppPaths paths;
   late SharedPreferences prefs;
+
+  // main() does this in the app.
+  setUpAll(initializeDateFormatting);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -196,6 +203,61 @@ void main() {
       (image.image as AssetImage).assetName,
       'assets/illustrations/empty_collection_dark.png',
     );
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('share card shows names, rarity and date, never coordinates', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      app(
+        Center(
+          child: SizedBox(
+            width: 320,
+            child: ShareCard(
+              data: ShareCardData(
+                scientificName: 'Turdus merula',
+                commonName: 'Common Blackbird',
+                date: DateTime(2026, 10, 17),
+                rarity: Rarity.legendary,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump();
+    expect(find.text('Common Blackbird'), findsOneWidget);
+    expect(find.text('Turdus merula'), findsOneWidget);
+    expect(find.text('Legendary'), findsOneWidget);
+    expect(find.text('October 17, 2026'), findsOneWidget);
+    expect(find.textContaining('°'), findsNothing);
+    expect(tester.takeException(), isNull, reason: 'no layout overflow');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('quiz explains what it needs when there are no voices', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(const QuizScreen()));
+    // The quiz waits up to 20 s for the region profile (no location here).
+    for (
+      var i = 0;
+      i < 25 && find.text('Download voices').evaluate().isEmpty;
+      i++
+    ) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(seconds: 1));
+    }
+    expect(find.text('Not enough voices yet'), findsOneWidget);
+    expect(find.text('Download voices'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });

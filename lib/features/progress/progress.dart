@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../../data/repositories/progress_repository.dart';
 import '../../services/species_guide/species_guide.dart';
 import '../achievements/achievements.dart';
 import 'rarity.dart';
+import '../../data/repositories/quiz_repository.dart';
 
 // ---------------------------------------------------------------- XP rules
 
@@ -121,12 +123,14 @@ class DayStats {
     this.songbirdSpecies = 0,
     this.uncommonOrRarer = 0,
     this.listeningMinutes = 0,
+    this.quizCorrect = 0,
   });
 
   factory DayStats.compute(
     List<SightingFact> facts,
     DateTime day, {
     int listeningSeconds = 0,
+    int quizCorrect = 0,
   }) {
     bool sameDay(DateTime t) =>
         t.year == day.year && t.month == day.month && t.day == day.day;
@@ -156,6 +160,7 @@ class DayStats {
           )
           .length,
       listeningMinutes: listeningSeconds ~/ 60,
+      quizCorrect: quizCorrect,
     );
   }
 
@@ -169,6 +174,9 @@ class DayStats {
   final int songbirdSpecies;
   final int uncommonOrRarer;
   final int listeningMinutes;
+
+  /// Birds guessed right in the voice quiz today.
+  final int quizCorrect;
 }
 
 class Quest {
@@ -300,7 +308,35 @@ final questPool = <Quest>[
     xp: 80,
     measure: (s) => s.uncommonOrRarer,
   ),
+  Quest(
+    id: 'quiz_5',
+    icon: Icons.quiz_outlined,
+    en: 'Guess 5 birds by voice',
+    ru: 'Угадайте 5 птиц по голосу',
+    target: 5,
+    xp: 50,
+    measure: (s) => s.quizCorrect,
+  ),
 ];
+
+/// XP per correct quiz answer, and the most the quiz pays in one day (so it
+/// rewards practice without replacing time outdoors).
+const quizAnswerXp = 5;
+const quizDailyXpCap = 50;
+
+int quizXp(Iterable<QuizAnswer> answers) {
+  final perDay = <String, int>{};
+  for (final a in answers) {
+    if (a.correct) {
+      final d = dayKey(a.answeredAt);
+      perDay[d] = (perDay[d] ?? 0) + quizAnswerXp;
+    }
+  }
+  return perDay.values.fold(
+    0,
+    (sum, v) => sum + (v > quizDailyXpCap ? quizDailyXpCap : v),
+  );
+}
 
 /// Three quests for [day]: one easy plus two others, the same all day.
 List<Quest> questsFor(DateTime day) {
@@ -358,10 +394,20 @@ final todayQuestsProvider = Provider<List<QuestProgress>?>((ref) {
   final facts = ref.watch(sightingFactsProvider).value;
   final done = ref.watch(questCompletionsProvider).value;
   final seconds = ref.watch(_listeningTodayProvider).value;
-  if (facts == null || done == null || seconds == null) return null;
+  final quiz = ref.watch(quizAnswersProvider).value;
+  if (facts == null || done == null || seconds == null || quiz == null) {
+    return null;
+  }
   final now = ref.watch(clockProvider)();
-  final stats = DayStats.compute(facts, now, listeningSeconds: seconds);
   final today = dayKey(now);
+  final stats = DayStats.compute(
+    facts,
+    now,
+    listeningSeconds: seconds,
+    quizCorrect: quiz
+        .where((a) => a.correct && dayKey(a.answeredAt) == today)
+        .length,
+  );
   final doneIds = {
     for (final c in done)
       if (c.day == today) c.questId,
@@ -381,9 +427,13 @@ final playerLevelProvider = Provider<PlayerLevel?>((ref) {
   final facts = ref.watch(sightingFactsProvider).value;
   final done = ref.watch(questCompletionsProvider).value;
   final achievements = ref.watch(achievementsProvider);
-  if (facts == null || done == null || achievements == null) return null;
+  final quiz = ref.watch(quizAnswersProvider).value;
+  if (facts == null || done == null || achievements == null || quiz == null) {
+    return null;
+  }
   final xp =
       sightingsXp(facts) +
+      quizXp(quiz) +
       done.fold<int>(0, (sum, c) => sum + c.xp) +
       achievements.where((a) => a.unlocked).length * achievementXp;
   return PlayerLevel.fromXp(xp);
@@ -402,6 +452,19 @@ class ProgressAnnouncer extends ConsumerStatefulWidget {
 class _ProgressAnnouncerState extends ConsumerState<ProgressAnnouncer> {
   final _questNames = <String>[];
 
+  /// Gains arriving close together (a save, then the quest it completes)
+  /// are shown as one message, measured from [_from].
+  static const _coalesce = Duration(milliseconds: 400);
+  PlayerLevel? _from;
+  PlayerLevel? _to;
+  Timer? _pending;
+
+  @override
+  void dispose() {
+    _pending?.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -413,10 +476,18 @@ class _ProgressAnnouncerState extends ConsumerState<ProgressAnnouncer> {
     ref.listenManual<PlayerLevel?>(playerLevelProvider, (prev, next) {
       // The first value is the starting point, not a gain.
       if (prev == null || next == null || next.totalXp <= prev.totalXp) {
-        _questNames.clear();
+        if (_pending == null) _questNames.clear();
         return;
       }
-      _announce(prev, next);
+      _from ??= prev;
+      _to = next;
+      _pending?.cancel();
+      _pending = Timer(_coalesce, () {
+        final from = _from, to = _to;
+        _pending = null;
+        _from = _to = null;
+        if (from != null && to != null) _announce(from, to);
+      });
     });
   }
 

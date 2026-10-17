@@ -83,6 +83,14 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
             icon: const Icon(Icons.emoji_events_outlined),
             label: Text(ru ? 'Достижения' : 'Achievements'),
           ),
+          const SizedBox(height: Space.sm),
+          FilledButton.tonalIcon(
+            onPressed: () => context.push('/quiz'),
+            icon: const Icon(Icons.quiz_outlined),
+            label: Text(
+              ru ? 'Викторина: угадай по голосу' : 'Quiz: guess by voice',
+            ),
+          ),
           const SizedBox(height: Space.xl),
           Text(
             ru ? 'Как получать опыт' : 'How to earn XP',
@@ -373,6 +381,13 @@ class _XpRules extends StatelessWidget {
           const Icon(Icons.emoji_events_outlined, size: 20),
           ru ? 'Достижение' : 'Achievement',
           '+$achievementXp',
+        ),
+        row(
+          const Icon(Icons.quiz_outlined, size: 20),
+          ru
+              ? 'Верный ответ в викторине (до $quizDailyXpCap в день)'
+              : 'Right quiz answer (up to $quizDailyXpCap a day)',
+          '+$quizAnswerXp',
         ),
         const SizedBox(height: Space.sm),
         Text(

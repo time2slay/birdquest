@@ -134,11 +134,15 @@ class Encounter {
     this.latitude,
     this.longitude,
     this.notes,
+    this.rarity,
   });
 
   final int id;
   final int speciesId;
   final int? sessionId;
+
+  /// Rarity tier name where it was found ('common' … 'legendary'), if known.
+  final String? rarity;
   final DateTime confirmedAt;
   final double? modelScore;
 
@@ -203,6 +207,35 @@ class SightingFact {
 
   /// Rarity name stored when saved ('common' … 'legendary'), or null.
   final String? rarity;
+
+  bool get hasLocation => latitude != null && longitude != null;
+}
+
+/// One sighting as exported to CSV / GPX / eBird.
+class ExportRow {
+  const ExportRow({
+    required this.confirmedAt,
+    required this.scientificName,
+    required this.commonName,
+    this.latitude,
+    this.longitude,
+    this.rarity,
+    this.modelScore,
+    this.notes,
+    this.photoCount = 0,
+  });
+
+  final DateTime confirmedAt;
+  final String scientificName;
+
+  /// The model's English name.
+  final String commonName;
+  final double? latitude;
+  final double? longitude;
+  final String? rarity;
+  final double? modelScore;
+  final String? notes;
+  final int photoCount;
 
   bool get hasLocation => latitude != null && longitude != null;
 }

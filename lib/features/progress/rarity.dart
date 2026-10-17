@@ -61,6 +61,7 @@ class RegionSpecies {
     required this.commonName,
     required this.taxonOrder,
     required this.mean,
+    this.monthly = const [],
   });
 
   final String scientificName;
@@ -69,6 +70,10 @@ class RegionSpecies {
 
   /// Average geo-model probability over the year.
   final double mean;
+
+  /// Geo-model probability for each month, January first (12 values; empty
+  /// in profiles cached before seasonality existed).
+  final List<double> monthly;
 
   Rarity get rarity => Rarity.fromMean(mean);
 }
@@ -103,7 +108,13 @@ class RegionProfile {
     'lon': longitude,
     'species': [
       for (final s in species.values)
-        [s.scientificName, s.commonName, s.taxonOrder, s.mean],
+        [
+          s.scientificName,
+          s.commonName,
+          s.taxonOrder,
+          s.mean,
+          [for (final m in s.monthly) (m * 1000).round() / 1000],
+        ],
     ],
     'unknown': unknown.toList(),
   };
@@ -118,6 +129,9 @@ class RegionProfile {
           commonName: e[1] as String,
           taxonOrder: e[2] as String,
           mean: (e[3] as num).toDouble(),
+          monthly: e.length > 4
+              ? [for (final m in e[4] as List) (m as num).toDouble()]
+              : const [],
         ),
     },
     unknown: {for (final u in j['unknown'] as List) u as String},
@@ -147,6 +161,7 @@ class RegionProfile {
         commonName: l.commonName,
         taxonOrder: l.taxonOrder,
         mean: weekly.reduce((a, b) => a + b) / weekly.length,
+        monthly: weekly.length == 12 ? weekly : const [],
       );
     }
     return RegionProfile(
@@ -209,7 +224,8 @@ final regionProfileComputerProvider = Provider<RegionProfileComputer>(
 /// The user's home region, cached in preferences and recomputed when they
 /// move more than [refreshKm] away.
 class RegionProfileNotifier extends Notifier<RegionProfile?> {
-  static const _key = 'region_profile_v1';
+  /// v2 adds per-month values; a v1 profile is simply recomputed.
+  static const _key = 'region_profile_v2';
   static const refreshKm = 50.0;
   Future<RegionProfile?>? _pending;
 
@@ -265,3 +281,17 @@ final regionProfileProvider =
     NotifierProvider<RegionProfileNotifier, RegionProfile?>(
       RegionProfileNotifier.new,
     );
+
+/// Monthly presence of a species in the user's region, January first, or
+/// null when there is no region profile yet or the geo model cannot judge
+/// the species. All zeros means "not expected here".
+final seasonalityProvider = Provider.family<List<double>?, String>((
+  ref,
+  scientificName,
+) {
+  final profile = ref.watch(regionProfileProvider);
+  if (profile == null || profile.unknown.contains(scientificName)) return null;
+  final s = profile.species[scientificName];
+  if (s == null) return List.filled(12, 0);
+  return s.monthly.length == 12 ? s.monthly : null;
+});
